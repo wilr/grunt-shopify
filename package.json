@@ -25,9 +25,6 @@
   "engines": {
     "node": ">= 0.8.0"
   },
-  "scripts": {
-    "test": "grunt test"
-  },
   "dependencies": {
     "grunt-regarde": "~0.1.1"
   },
