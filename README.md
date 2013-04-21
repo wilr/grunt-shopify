@@ -36,7 +36,7 @@ watch and notify of any local file system changes.
 To setup the plug-in you need to make the following changes to your project's 
 Gruntfile.
 
-Step 1. Add a section named `shopify` to the data object passed into 
+Step 1. Add a section named `shopify` to the data object passed into
 `grunt.initConfig()`. This should include your api key and password for a 
 private application setup under your store 
 (http://wiki.shopify.com/Private_applications)
@@ -53,7 +53,7 @@ grunt.initConfig({
 })
 ```
 
-Step 2. Add a section named `regarde` to describe what files and directories you 
+Step 2. Add a section named `regarde` to describe what files and directories you
 want to sync to shopify.
 
 ```js
@@ -79,7 +79,7 @@ Run `grunt regarde:shopify` to watch for local changes.
 #### options.api_key
 
 Type: `String`
-Default value: `',  '`
+Default value: `''`
 
 The API Key from your Shopify account. To get an API key, register a new private 
 application through your Shopify dashboard.
@@ -87,7 +87,7 @@ application through your Shopify dashboard.
 #### options.password
 
 Type: `String`
-Default value: `'.'`
+Default value: `''`
 
 The API Password for the private application. This should be available to you 
 once you create your private application.
@@ -95,10 +95,18 @@ once you create your private application.
 #### options.url
 
 Type: `String`
-Default value: `'.'`
+Default value: `''`
 
 Your shopify store url. Even if you have a custom domain setup, use the Shopify
 domain as your API url (e.g `storename.myshopify.com`)
+
+#### options.base
+
+Type: `String`
+Default value: `''`
+
+If you've got your shopify files stored in a subdirectory locally (e.g in a 
+shop/ folder), base should the name of the folder (i.e shop).
 
 ## Contributing
 
