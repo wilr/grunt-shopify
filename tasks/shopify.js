@@ -44,21 +44,6 @@ module.exports = function(grunt) {
     };
 
     /*
-     * Helper to escape HTML
-     *
-     * @param {string}
-     * @return {string}
-     */
-    shopify.escape = function(text) {
-        return text.toString()
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    };
-
-    /*
      * Helper to detect whether a file is binary or not. Used to handle sending
      * image assets to shopify vs other assets
      *
@@ -176,7 +161,7 @@ module.exports = function(grunt) {
                 // if the file is a binary file 
                 post = JSON.stringify({
                     'asset': {
-                        'value': shopify.escape(data),
+                        'value': data,
                         'key': key
                     }
                 });
