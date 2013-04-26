@@ -8,7 +8,6 @@
 'use strict';
 
 module.exports = function(grunt) {
-
     var shopify = shopify || {},
         fs = require('fs'),
         http = require('http');
@@ -21,11 +20,11 @@ module.exports = function(grunt) {
     shopify.getHost = function() {
         var c = grunt.config('shopify');
 
-        return c.options.url
+        return c.options.url;
     };
 
     /*
-     * Return the authenication header for basic auth
+     * Return the authentication header for basic auth
      *
      * @return {string}
      */
@@ -42,7 +41,7 @@ module.exports = function(grunt) {
      */
     shopify.getPort = function() {
         return 80;
-    }
+    };
 
     /*
      * Helper to escape HTML
@@ -57,7 +56,7 @@ module.exports = function(grunt) {
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
-    }
+    };
 
     /*
      * Helper to detect whether a file is binary or not. Used to handle sending
@@ -154,7 +153,7 @@ module.exports = function(grunt) {
         req.end();
 
         return true;
-    }
+    };
 
     /*
      * Upload a given file path to Shopify
@@ -225,7 +224,7 @@ module.exports = function(grunt) {
         });
 
         return true;
-    }
+    };
 
     /*
      * Shopify noop.
