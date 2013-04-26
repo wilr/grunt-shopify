@@ -73,6 +73,22 @@ module.exports = function(grunt) {
         });
     };
 
+    /**
+     * Helper for reporting Http response success and error messages to the
+     * user
+     *
+     * @param {response}
+     * @param {string}
+     */
+    shopify.notify = function(res, msg) {
+        if(res.statusCode >= 400) {
+            grunt.log.error("[grunt-shopify] - Error "+ msg +" (Status Code: "+ res.statusCode + ")");
+        }
+        else {
+            grunt.log.ok("[Grunt-Shopify] - Success "+ msg +" (Status Code: "+ res.statusCode + ")");
+        }
+    }; 
+
     /*
      * Convert a file path on the local file system to an asset path in shopify
      * as you may run grunt at a higher directory locally.
@@ -117,20 +133,20 @@ module.exports = function(grunt) {
             }
         };
 
-        grunt.log.ok('Executing DELETE on '+ path);
+        grunt.log.ok('[grunt-shopify] - Executing DELETE on '+ path);
 
         var req = http.request(options, function(res) {
             res.setEncoding('utf8');
 
             res.on('end', function () {
-                grunt.log.ok("Successfully deleted file from shopify (Status Code: "+ res.statusCode + ")");
+                shopify.notify(res, "deleting file on shopify");
             });
 
             return true;
         });
 
         req.on('error', function(e) {
-            grunt.log.error('Problem with DELETE request: ' + e.message);
+            grunt.log.error('[grunt-shopify] - Problem with DELETE request: ' + e.message);
 
             return false;
         });
@@ -186,20 +202,20 @@ module.exports = function(grunt) {
                 }
             };
 
-            grunt.log.ok('Executing PUT on '+ key);
+            grunt.log.ok('[grunt-shopify] - Executing PUT on '+ key);
 
             var req = http.request(options, function(res) {
                 res.setEncoding('utf8');
 
                 res.on('end', function () {
-                   grunt.log.ok("Updated file on shopify (Status Code: "+ res.statusCode + ")");
+                    shopify.notify(res, "uploading file on shopify");
                 });
 
                 return true;
             });
 
             req.on('error', function(e) {
-                grunt.log.error('Problem with PUT request: ' + e.message);
+                grunt.log.error('[grunt-shopify] - Problem with PUT request: ' + e.message);
 
                 return false;
             });
