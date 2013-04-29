@@ -54,7 +54,7 @@ module.exports = function(grunt) {
         var ascii = true,
             i, len;
 
-        fs.readFile(file, function(err, data) {
+        fs.readFile(file, "utf8", function(err, data) {
             if (err) {
                 grunt.log.error("isBinaryFile failed on " + file +": "+ err);
 
