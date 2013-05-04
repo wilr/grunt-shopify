@@ -80,6 +80,35 @@ grunt.initConfig({
 
 Run `grunt regarde:shopify` to watch for local changes. 
 
+### Running shopify after other watched files
+
+If you're using coffeescript or some other language which needs to be compiled
+before being uploaded to the shopify store, use regarde to have the coffee
+tasks run on `.coffee` files and have shopify watch the resulting `.js` files.
+
+```js
+grunt.loadNpmTasks('grunt-regarde');
+grunt.loadNpmTasks('grunt-shopify');
+
+grunt.initConfig({
+  shopify: {
+    // ...
+  },
+  regarde: {
+    coffee: {
+      files: ["shop/javascript/*.coffee"],
+      tasks: ["coffee"]
+    },
+    shopify: {
+      files: ["shop/assets/**", "shop/javascript/*.js", "shop/snippets/**", "shop/layout/**"],
+      tasks: ["shopify"],
+      events: true,
+      spawn: true
+    }
+  }
+});
+```
+
 ### Options
 
 #### options.api_key
