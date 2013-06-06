@@ -10,7 +10,8 @@
 module.exports = function(grunt) {
     var shopify = shopify || {},
         fs = require('fs'),
-        https = require('https');
+        https = require('https'),
+        growl = require('growl');
 
     /*
      * Return the base api host with the basic auth. Does not require the 
@@ -19,9 +20,9 @@ module.exports = function(grunt) {
      * @return {string}
      */
     shopify.getHost = function() {
-        var c = grunt.config('shopify');
+        var config = grunt.config('shopify');
 
-        return c.options.url;
+        return config.options.url;
     };
 
     /*
@@ -30,9 +31,9 @@ module.exports = function(grunt) {
      * @return {string}
      */
     shopify.getAuth = function() {
-        var c = grunt.config('shopify');
-        
-        return c.options.api_key + ":" + c.options.password;
+        var config = grunt.config('shopify');
+
+        return config.options.api_key + ":" + config.options.password;
     };
 
     /*
@@ -67,17 +68,47 @@ module.exports = function(grunt) {
 
     /**
      * Helper for reporting Http response success and error messages to the
-     * user
+     * user. To notify the user without a response (i.e for an info note) simply
+     * don't pass a response notify("hello");
      *
-     * @param {response}
+     * @param {response}|{string}
      * @param {string}
      */
     shopify.notify = function(res, msg) {
-        if(res.statusCode >= 400) {
-            grunt.log.error("[grunt-shopify] - Error "+ msg +" (Status Code: "+ res.statusCode + ")");
+        var config = grunt.config('shopify');
+
+        if(typeof res !== "string") {
+            if(res.statusCode >= 400) {
+                msg = "Error "+ msg +" (Status Code: "+ res.statusCode + ")";
+
+                if(!config.options.disable_growl_notifications) {
+                    growl(msg, { title: 'Grunt Shopify'});
+                }
+
+                if(!config.options.disable_grunt_log) {
+                    grunt.log.error('[grunt-shopify] - ' + msg);
+                }
+            }
+            else {
+                msg = "Success "+ msg +" (Status Code: "+ res.statusCode + ")";
+
+                if(!config.options.disable_growl_notifications) {
+                    growl(msg, { title: 'Grunt Shopify'});
+                }
+
+                if(!config.options.disable_grunt_log) {            
+                    grunt.log.ok('[grunt-shopify] - ' + msg);
+                }
+            }
         }
         else {
-            grunt.log.ok("[Grunt-Shopify] - Success "+ msg +" (Status Code: "+ res.statusCode + ")");
+            if(!config.options.disable_growl_notifications) {
+               growl(res, { title: 'Grunt Shopify'});
+            }
+
+            if(!config.options.disable_grunt_log) {            
+                grunt.log.ok('[grunt-shopify] - ' + res);
+            }
         }
     }; 
 
@@ -113,6 +144,8 @@ module.exports = function(grunt) {
      * @param {string}
      */
     shopify.remove = function(file) {
+        shopify.notify("Deleting " + file);
+
         var path = shopify.getAssetKey(file);
 
         var options = {
@@ -124,20 +157,18 @@ module.exports = function(grunt) {
             }
         };
 
-        grunt.log.ok('[grunt-shopify] - Executing DELETE on '+ path);
-
         var req = https.request(options, function(res) {
             res.setEncoding('utf8');
 
             res.on('end', function () {
-                shopify.notify(res, "deleting file on shopify");
+                shopify.notify(res, "deleting file");
             });
 
             return true;
         });
 
         req.on('error', function(e) {
-            grunt.log.error('[grunt-shopify] - Problem with DELETE request: ' + e.message);
+            shopify.notify('Problem with DELETE request: ' + e.message);
 
             return false;
         });
@@ -160,6 +191,8 @@ module.exports = function(grunt) {
      * Some requests may fail if those folders are ignored
      */
     shopify.upload = function(file) {
+        shopify.notify("Uploading " + file);
+
         shopify.isBinaryFile(file, function(ascii, data) {
             var key = shopify.getAssetKey(file),
                 post = {};
@@ -192,8 +225,6 @@ module.exports = function(grunt) {
                     'Content-Length': Buffer.byteLength(post,'utf8')
                 }
             };
-        
-            grunt.log.ok('[grunt-shopify] - Executing PUT on '+ key);
 
             var req = https.request(options, function(res) {
                 res.setEncoding('utf8');
@@ -206,7 +237,7 @@ module.exports = function(grunt) {
             });
 
             req.on('error', function(e) {
-                grunt.log.error('[grunt-shopify] - Problem with PUT request: ' + e.message);
+                shopify.notify('Problem with PUT request: ' + e.message);
 
                 return false;
             });
@@ -266,7 +297,7 @@ module.exports = function(grunt) {
                     break;
             }
         } else {
-            grunt.log.warn("Skipping directory "+ filepath);
+            shopify.notify("Skipping directory "+ filepath);
         }
 
         return true;

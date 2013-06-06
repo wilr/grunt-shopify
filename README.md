@@ -3,18 +3,21 @@
 > Grunt plug-in for publishing Shopify theme assets
 
 This plug-in handles publishing file changes, uploading new files and removing
-deleted files from your local filesystem to a Shopify account in real time. 
+deleted files from your local filesystem to a Shopify account in real time.
+
 Inspired by the useful [TextMate bundle](http://wiki.shopify.com/Shopify_Textmate_Bundle), 
 this plug-in is designed to be IDE / Editor independent as well as work easily 
 on image and other assets being added / removed.
 
 Note: Because this plug-in will update your current Shopify theme, it is 
 recommended to be used in conjunction with a version control system (you are
-using version control right?)
+using version control right?) to ensure that you don't delete a file you 
+shouldn't.
 
-Note: As you will be putting your API key and Password to your shopify site in
+Note: As you will be putting your API key and Password to your Shopify site in
 a plain text file (Gruntfile.js) this is a reminder to *not publish* your 
-gruntfile into production. 
+gruntfile into production. You should also use an environment property and 
+update the grunt file to read from the current node ENV (Google it).
 
 ## Getting Started
 
@@ -111,7 +114,7 @@ grunt.initConfig({
 
 ### Options
 
-#### options.api_key
+#### api_key
 
 Type: `String`
 Default value: `''`
@@ -119,7 +122,7 @@ Default value: `''`
 The API Key from your Shopify account. To get an API key, register a new private 
 application through your Shopify dashboard.
 
-#### options.password
+#### password
 
 Type: `String`
 Default value: `''`
@@ -127,7 +130,7 @@ Default value: `''`
 The API Password for the private application. This should be available to you 
 once you create your private application.
 
-#### options.url
+#### url
 
 Type: `String`
 Default value: `''`
@@ -135,13 +138,31 @@ Default value: `''`
 Your shopify store url. Even if you have a custom domain setup, use the Shopify
 domain as your API url (e.g `storename.myshopify.com`)
 
-#### options.base
+#### base
 
 Type: `String`
 Default value: `''`
 
 If you've got your shopify files stored in a subdirectory locally (e.g in a 
 shop/ folder), base should the name of the folder (i.e shop).
+
+#### disable_growl_notifications
+
+Type: `Boolean`
+Default value: `false`
+
+By default the script will pipe notices to Growl through [node-growl](https://github.com/visionmedia/node-growl),
+if you prefer this to stay in the background set disable_growl_notifications to
+false.
+
+#### disable_grunt_log
+
+Type: `Boolean`
+Default value: `false`
+
+On top of using Growl notifications for application status, error messages are
+output in via grunt log. Turning off the grunt log will keep your terminal clear
+in 
 
 ## Contributing
 

@@ -26,7 +26,8 @@
   },
   "devDependencies": {
     "grunt-contrib-jshint": "~0.1.1",
-    "grunt": "~0.4.1"
+    "grunt": "~0.4.1",
+    "growl": "~1.7"
   },
   "peerDependencies": {
     "grunt-regarde": "~0.1.1"
