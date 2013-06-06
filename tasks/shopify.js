@@ -10,10 +10,11 @@
 module.exports = function(grunt) {
     var shopify = shopify || {},
         fs = require('fs'),
-        http = require('http');
+        https = require('https');
 
     /*
-     * Return the base api host with the basic auth
+     * Return the base api host with the basic auth. Does not require the 
+     * protocol.
      *
      * @return {string}
      */
@@ -32,15 +33,6 @@ module.exports = function(grunt) {
         var c = grunt.config('shopify');
         
         return c.options.api_key + ":" + c.options.password;
-    };
-
-    /*
-     * HTTP Port
-     *
-     * @return {int}
-     */
-    shopify.getPort = function() {
-        return 80;
     };
 
     /*
@@ -125,7 +117,6 @@ module.exports = function(grunt) {
 
         var options = {
             host: shopify.getHost(),
-            port: shopify.getPort(),
             path: '/admin/assets.json',
             method: 'DELETE',
             query: {
@@ -135,7 +126,7 @@ module.exports = function(grunt) {
 
         grunt.log.ok('[grunt-shopify] - Executing DELETE on '+ path);
 
-        var req = http.request(options, function(res) {
+        var req = https.request(options, function(res) {
             res.setEncoding('utf8');
 
             res.on('end', function () {
@@ -181,6 +172,7 @@ module.exports = function(grunt) {
                         'key': key
                     }
                 });
+
             } else {
                 post = JSON.stringify({
                     'asset': {
@@ -192,7 +184,6 @@ module.exports = function(grunt) {
 
             var options = {
                 hostname: shopify.getHost(),
-                port: shopify.getPort(),
                 auth: shopify.getAuth(),
                 path: '/admin/assets.json',
                 method: 'PUT',
@@ -201,10 +192,10 @@ module.exports = function(grunt) {
                     'Content-Length': Buffer.byteLength(post,'utf8')
                 }
             };
-
+        
             grunt.log.ok('[grunt-shopify] - Executing PUT on '+ key);
 
-            var req = http.request(options, function(res) {
+            var req = https.request(options, function(res) {
                 res.setEncoding('utf8');
 
                 res.on('end', function () {
