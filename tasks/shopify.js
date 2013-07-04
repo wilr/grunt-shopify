@@ -252,8 +252,8 @@ module.exports = function(grunt) {
     /*
      * Shopify noop.
      *
-     * Use regarde to monitor changes. To do an initial upload of all files
-     * on your local copy, use the shopify upload functionality.
+     * Use watch to monitor changes. To do an initial upload of all files on 
+     * your local copy, use the shopify upload functionality.
      */
     grunt.registerTask('shopify', function() {
         return true;
@@ -267,12 +267,10 @@ module.exports = function(grunt) {
         shopify.remove(p);
     });
 
-    /*
-     * Main event handler for tracking changes to a file.
-     *
-     * @todo If the event changed property is a folder then ignore it for now.
+    /**
+     * Grunt watch event
      */
-    grunt.event.on('regarde:file', function (status, target, filepath) {
+    grunt.event.on('watch', function(action, filepath) {
         var upload = true;
 
         try {
@@ -284,7 +282,7 @@ module.exports = function(grunt) {
         }
         
         if(upload) {
-            switch (status) {
+            switch (action) {
                 case 'deleted':
                     shopify.remove(filepath);
 

@@ -6,18 +6,18 @@ This plug-in handles publishing file changes, uploading new files and removing
 deleted files from your local filesystem to a Shopify account in real time.
 
 Inspired by the useful [TextMate bundle](http://wiki.shopify.com/Shopify_Textmate_Bundle), 
-this plug-in is designed to be IDE / Editor independent as well as work easily 
-on image and other assets being added / removed.
+this grunt plug-in is designed to be IDE / Editor independent as well as work 
+easily on image and other assets being added / removed in the background.
 
-Note: Because this plug-in will update your current Shopify theme, it is 
+**Note**: Because this plug-in will update your current Shopify theme, it is 
 recommended to be used in conjunction with a version control system (you are
 using version control right?) to ensure that you don't delete a file you 
 shouldn't.
 
-Note: As you will be putting your API key and Password to your Shopify site in
-a plain text file (Gruntfile.js) this is a reminder to *not publish* your 
-gruntfile into production. You should also use an environment property and 
-update the grunt file to read from the current node ENV (Google it).
+**Note**: Your API key and Password to your Shopify site gives other developers
+full access to the shop. If you want to secure this information you should use 
+an environment property and update the grunt file to read from the current node 
+environment.
 
 ## Getting Started
 
@@ -33,19 +33,21 @@ command in:
 npm install grunt-shopify --save-dev
 ```
 
-This plug-in uses [grunt-regarde](https://github.com/yeoman/grunt-regarde) to 
-watch and notify of any local file system changes.
+This plug-in uses [grunt-watch](https://github.com/gruntjs/grunt-contrib-watch) 
+to watch and notify of any local file system changes.
 
 To setup the plug-in you need to make the following changes to your project's 
 Gruntfile.
 
 Step 1. Add a section named `shopify` to the data object passed into 
 `grunt.initConfig()`. This should include your api key and password for a 
-private application setup under your store 
-(http://wiki.shopify.com/Private_applications)
+private application setup under your store (http://wiki.shopify.com/Private_applications).
+
+As mentioned, for secure environments use environment variables instead of hard
+coding this information.
 
 ```js
-grunt.loadNpmTasks('grunt-regarde');
+grunt.loadNpmTasks('grunt-contrib-watch');
 grunt.loadNpmTasks('grunt-shopify');
 
 grunt.initConfig({
@@ -59,54 +61,50 @@ grunt.initConfig({
 })
 ```
 
-Step 2. Add a section named `regarde` to describe what files and directories you 
+Step 2. Add a section named `watch` to describe what files and directories you 
 want to sync to shopify.
 
 ```js
-grunt.loadNpmTasks('grunt-regarde');
+grunt.loadNpmTasks('grunt-contrib-watch');
 grunt.loadNpmTasks('grunt-shopify');
 
 grunt.initConfig({
   shopify: {
     // ...
   },
-  regarde: {
+  watch: {
     shopify: {
-      files: ["shop/*"],
-      tasks: ["shopify"],
-      events: true,
-      spawn: true
+      files: ["shop/**"],
+      tasks: ["shopify"]
     }
   }
 });
 ```
 
-Run `grunt regarde:shopify` to watch for local changes. 
+Run `grunt watch:shopify` to watch for local changes. 
 
 ### Running shopify after other watched files
 
 If you're using coffeescript or some other language which needs to be compiled
-before being uploaded to the shopify store, use regarde to have the coffee
+before being uploaded to the shopify store, use watch to have the coffee
 tasks run on `.coffee` files and have shopify watch the resulting `.js` files.
 
 ```js
-grunt.loadNpmTasks('grunt-regarde');
+grunt.loadNpmTasks('grunt-contrib-watch');
 grunt.loadNpmTasks('grunt-shopify');
 
 grunt.initConfig({
   shopify: {
     // ...
   },
-  regarde: {
+  watch: {
     coffee: {
       files: ["shop/javascript/*.coffee"],
       tasks: ["coffee"]
     },
     shopify: {
       files: ["shop/assets/**", "shop/javascript/*.js", "shop/snippets/**", "shop/layout/**"],
-      tasks: ["shopify"],
-      events: true,
-      spawn: true
+      tasks: ["shopify"]
     }
   }
 });
