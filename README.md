@@ -142,7 +142,7 @@ Type: `String`
 Default value: `''`
 
 If you've got your shopify files stored in a subdirectory locally (e.g in a 
-shop/ folder), base should the name of the folder (i.e shop).
+shop/ folder), base should the name of the folder with the trailing slash (i.e shop/).
 
 #### disable_growl_notifications
 
