@@ -289,13 +289,13 @@ module.exports = function(grunt) {
         if(upload) {
             switch (action) {
                 case 'deleted':
-                    shopify.remove(filepath);
+                    shopify.remove(filepath, function(){});
 
                     break;
                 case 'added':
                 case 'changed':
                 case 'renamed':
-                    shopify.upload(filepath);
+                    shopify.upload(filepath, function(){});
 
                     break;
             }
