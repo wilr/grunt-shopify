@@ -141,9 +141,10 @@ module.exports = function(grunt) {
      * File should be the relative path on the local filesystem. See 
      * getAssetKey for the conversion to remote asset location
      *
-     * @param {string}
+     * @param {string} file
+     * @param {function} async completion callback 
      */
-    shopify.remove = function(file) {
+    shopify.remove = function(file, done) {
         shopify.notify("Deleting " + file);
 
         var path = shopify.getAssetKey(file);
@@ -164,13 +165,13 @@ module.exports = function(grunt) {
                 shopify.notify(res, "deleting file");
             });
 
-            return true;
+            return done(true);
         });
 
         req.on('error', function(e) {
             shopify.notify('Problem with DELETE request: ' + e.message);
 
-            return false;
+            return done(false);
         });
 
         req.end();
@@ -189,8 +190,10 @@ module.exports = function(grunt) {
      *      - General assets => "assets/"
      *
      * Some requests may fail if those folders are ignored
+     * @param {string} file
+     * @param {function} async completion callback 
      */
-    shopify.upload = function(file) {
+    shopify.upload = function(file, done) {
         shopify.notify("Uploading " + file);
 
         shopify.isBinaryFile(file, function(ascii, data) {
@@ -233,13 +236,13 @@ module.exports = function(grunt) {
                     shopify.notify(res, "uploading file on shopify");
                 });
 
-                return true;
+                return done(true);
             });
 
             req.on('error', function(e) {
                 shopify.notify('Problem with PUT request: ' + e.message);
 
-                return false;
+                return done(false);
             });
 
             req.write(post);
@@ -260,11 +263,13 @@ module.exports = function(grunt) {
     });
 
     grunt.registerTask('shopify:upload', 'Uploads a theme file to Shopify', function(p) {
-        shopify.upload(p);
+        var done = this.async();
+        shopify.upload(p, done);
     });
 
     grunt.registerTask('shopify:delete', 'Removes a theme file from Shopify', function(p) {
-        shopify.remove(p);
+        var done = this.async();
+        shopify.remove(p, done);
     });
 
     /**
