@@ -235,15 +235,15 @@ module.exports = function(grunt) {
             var req = https.request(options, function(res) {
                 res.setEncoding('utf8');
                 
-                var data = '';
+                var body = '';
                 
-                res.on('data', function(d) {
-                  data += d;
+                res.on('data', function(chunk) {
+                  body += chunk;
                 });
 
                 res.on('end', function () {
                   if (res.statusCode >= 400 ) {
-                    shopify.notify(res, "upload failed with response " + data);
+                    shopify.notify(res, "upload failed with response " + body);
                   } else {
                     shopify.notify(res, "uploaded file to shopify as " + key);
                   }
@@ -301,16 +301,16 @@ module.exports = function(grunt) {
             res.setEncoding('utf8');
         
             var c = grunt.config('shopify');
-            var data = '';
+            var body = '';
             var destination = path.join(c.options.base || '', key);
             
-            res.on('data', function(d) {
-                data += d;
+            res.on('data', function(chunk) {
+                body += chunk;
             });
             
             res.on('end', function () {
                 try {
-                    var obj = JSON.parse(data);
+                    var obj = JSON.parse(body);
                     if (obj.asset) {
                         var value, encoding;
                         if (typeof obj.asset.value !== 'undefined') {
@@ -325,6 +325,7 @@ module.exports = function(grunt) {
                         }
                         if (grunt.option('no-write')) {
                             shopify.notify(util.format('dry run: Downloaded %s to %s', key, destination));
+                            console.log(util.inspect(obj)); 
                             done(true);
                         } else {
                             fs.writeFile(destination, value, encoding, function(err) {
@@ -369,7 +370,7 @@ module.exports = function(grunt) {
         var req = https.request(options, function(res) {
             res.setEncoding('utf8');
         
-            var data = '';
+            var body = '';
             var obj;
         
             function next(i) {
@@ -386,13 +387,13 @@ module.exports = function(grunt) {
                 }
             };
             
-            res.on('data', function(d) {
-                data += d;
+            res.on('data', function(chunk) {
+                body += chunk;
             });
             
             res.on('end', function () {
                 try {
-                    obj = JSON.parse(data);
+                    obj = JSON.parse(body);
                     if (obj.assets) {
                         next(0);
                     } else {
