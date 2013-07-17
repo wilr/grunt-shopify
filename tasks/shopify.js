@@ -234,9 +234,9 @@ module.exports = function(grunt) {
 
                 res.on('end', function () {
                     shopify.notify(res, "uploading file on shopify");
+                    return done(true);
                 });
 
-                return done(true);
             });
 
             req.on('error', function(e) {
