@@ -197,7 +197,7 @@ module.exports = function(grunt) {
      * @param {function} async completion callback 
      */
     shopify.upload = function(file, done) {
-        shopify.notify("Uploading " + file + " to " + shopify.getAssetKey(file));
+        shopify.notify("Uploading " + file );
 
         shopify.isBinaryFile(file, function(ascii, data) {
             var key = shopify.getAssetKey(file),
@@ -242,7 +242,11 @@ module.exports = function(grunt) {
                 });
 
                 res.on('end', function () {
-                    shopify.notify(res, "uploaded file on shopify");
+                  if (res.statusCode >= 400 ) {
+                    shopify.notify(res, "upload failed with response " + data);
+                  } else {
+                    shopify.notify(res, "uploaded file to shopify as " + key);
+                  }
                     return done(true);
                 });
 
