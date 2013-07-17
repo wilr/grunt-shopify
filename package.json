@@ -15,7 +15,8 @@
   "bugs": {
     "url": "https://github.com/wilr/grunt-shopify/issues"
   },
-  "licenses": [{
+  "licenses": [
+    {
       "type": "BSD-3-Clause",
       "url": "https://github.com/wilr/grunt-shopify/blob/master/LICENSE"
     }
@@ -33,6 +34,10 @@
     "grunt-contrib-jshint": "~0.1.1"
   },
   "keywords": [
-    "gruntplugin", "shopify"
-  ]
+    "gruntplugin",
+    "shopify"
+  ],
+  "dependencies": {
+    "glob": "~3.2.3"
+  }
 }

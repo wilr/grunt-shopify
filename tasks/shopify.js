@@ -10,6 +10,9 @@
 module.exports = function(grunt) {
     var shopify = shopify || {},
         fs = require('fs'),
+        path = require('path'),
+        glob = require('glob'),
+        util = require('util'),
         https = require('https'),
         growl = require('growl');
 
@@ -194,7 +197,7 @@ module.exports = function(grunt) {
      * @param {function} async completion callback 
      */
     shopify.upload = function(file, done) {
-        shopify.notify("Uploading " + file);
+        shopify.notify("Uploading " + file );
 
         shopify.isBinaryFile(file, function(ascii, data) {
             var key = shopify.getAssetKey(file),
@@ -231,12 +234,22 @@ module.exports = function(grunt) {
 
             var req = https.request(options, function(res) {
                 res.setEncoding('utf8');
-
-                res.on('end', function () {
-                    shopify.notify(res, "uploading file on shopify");
+                
+                var data = '';
+                
+                res.on('data', function(d) {
+                  data += d;
                 });
 
-                return done(true);
+                res.on('end', function () {
+                  if (res.statusCode >= 400 ) {
+                    shopify.notify(res, "upload failed with response " + data);
+                  } else {
+                    shopify.notify(res, "uploaded file to shopify as " + key);
+                  }
+                    return done(true);
+                });
+
             });
 
             req.on('error', function(e) {
@@ -251,6 +264,155 @@ module.exports = function(grunt) {
 
         return true;
     };
+    
+    shopify.deploy = function(done) {
+        var c = grunt.config('shopify');
+        var paths = [];
+        ['assets','config','layout','snippets','templates'].forEach(function(folder) {
+          paths = paths.concat(glob.sync(path.join(c.options.base || '', folder, '*.*')));
+        });
+        function next(i) {
+            if (i < paths.length) {
+                shopify.upload(paths[i], function(success) {
+                    if (!success) {
+                        return done(false);
+                    }
+                    next(i+1);
+                });
+            } else {
+                done(true);
+            }
+        }
+        next(0);
+    };
+    
+    shopify.getOneAsset = function(key, done) {
+        var options = {
+            hostname: shopify.getHost(),
+            auth: shopify.getAuth(),
+            path: '/admin/assets.json?asset[key]='+key,
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        
+        var req = https.request(options, function(res) {
+            res.setEncoding('utf8');
+        
+            var c = grunt.config('shopify');
+            var data = '';
+            var destination = path.join(c.options.base || '', key);
+            
+            res.on('data', function(d) {
+                data += d;
+            });
+            
+            res.on('end', function () {
+                try {
+                    var obj = JSON.parse(data);
+                    if (obj.asset) {
+                        var value, encoding;
+                        if (typeof obj.asset.value !== 'undefined') {
+                            value = obj.asset.value;
+                            encoding = 'utf8';
+                        } else if (typeof obj.asset.attachment !== 'undefined') {
+                            value = new Buffer(obj.asset.attachment, 'base64');
+                            encoding = null;
+                        } else {
+                            grunt.log.error('Parsed object is not complete: ' + util.inspect(obj));
+                            return done(false);
+                        }
+                        if (grunt.option('no-write')) {
+                            shopify.notify(util.format('dry run: Downloaded %s to %s', key, destination));
+                            done(true);
+                        } else {
+                            fs.writeFile(destination, value, encoding, function(err) {
+                                if (err) {
+                                    grunt.log.error(util.format('Error saving asset %s to %s: %s', key, destination, err.message));
+                                    done(false);
+                                } else {
+                                    shopify.notify(util.format('Downloaded %s to %s', key, destination));
+                                    done(true);
+                                }
+                            });
+                        }
+                    } else {
+                        grunt.log.error('Parsed object is not complete: ' + util.inspect(obj));
+                        return done(false);
+                    }
+                } catch(e) {
+                    grunt.log.error('Failed to parse JSON response');
+                    done(false);
+                }
+            });
+        });
+        
+        req.on('error', function(e) {
+            shopify.notify('Problem with GET request: ' + e.message);
+            return done(false);
+        });
+        req.end();
+    };
+    
+    shopify.download = function(done) {
+        var options = {
+            hostname: shopify.getHost(),
+            auth: shopify.getAuth(),
+            path: '/admin/assets.json',
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        
+        var req = https.request(options, function(res) {
+            res.setEncoding('utf8');
+        
+            var data = '';
+            var obj;
+        
+            function next(i) {
+                if (i < obj.assets.length) {
+                    shopify.getOneAsset(obj.assets[i].key, function(success) {
+                        if (!success) {
+                          return done(false);
+                        }
+                        next(i+1);
+                    });
+                } else {
+                    shopify.notify('Theme sync complete.');
+                    done(true);
+                }
+            };
+            
+            res.on('data', function(d) {
+                data += d;
+            });
+            
+            res.on('end', function () {
+                try {
+                    obj = JSON.parse(data);
+                    if (obj.assets) {
+                        next(0);
+                    } else {
+                        grunt.log.error('Failed to get shopify assets');
+                        return done(false);
+                    }
+                } catch (e) {
+                    grunt.log.error('Failed to parse JSON response');
+                    done(false);
+                }
+            });
+        });
+        
+        req.on('error', function(e) {
+            shopify.notify('Problem with GET request: ' + e.message);
+            return done(false);
+        });
+        
+        req.end();
+    };
 
     /*
      * Shopify noop.
@@ -262,9 +424,23 @@ module.exports = function(grunt) {
         return true;
     });
 
-    grunt.registerTask('shopify:upload', 'Uploads a theme file to Shopify', function(p) {
+    grunt.registerTask('shopify:download', 'Downloads a single theme file from shopify, or the entire theme if no file is specified', function(p) {
         var done = this.async();
-        shopify.upload(p, done);
+        if (p) {
+          var key = shopify.getAssetKey(p); 
+          shopify.getOneAsset(key, done);
+        } else {
+          shopify.download(done);
+        }
+    });
+
+    grunt.registerTask('shopify:upload', 'Uploads a single theme file to Shopify, or the entire theme if no file is specified', function(p) {
+        var done = this.async();
+        if (p) {
+          shopify.upload(p, done);
+        } else {
+          shopify.deploy(done);
+        }
     });
 
     grunt.registerTask('shopify:delete', 'Removes a theme file from Shopify', function(p) {
