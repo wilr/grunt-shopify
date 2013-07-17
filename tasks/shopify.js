@@ -50,7 +50,7 @@ module.exports = function(grunt) {
         var ascii = true,
             i, len;
 
-        fs.readFile(file, "utf8", function(err, data) {
+        fs.readFile(file, function(err, data) {
             if (err) {
                 grunt.log.error("isBinaryFile failed on " + file +": "+ err);
 
@@ -207,7 +207,7 @@ module.exports = function(grunt) {
                 // if the file is a binary file 
                 post = JSON.stringify({
                     'asset': {
-                        'value': data,
+                        'value': data.toString('utf8'),
                         'key': key
                     }
                 });
@@ -215,7 +215,7 @@ module.exports = function(grunt) {
             } else {
                 post = JSON.stringify({
                     'asset': {
-                        'value': new Buffer(data).toString('base64'),
+                        'attachment': data.toString('base64'),
                         'key': key
                     }
                 });
