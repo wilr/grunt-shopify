@@ -154,21 +154,33 @@ module.exports = function(grunt) {
 
         var options = {
             host: shopify.getHost(),
-            path: '/admin/assets.json',
+            auth: shopify.getAuth(),
+            path: '/admin/assets.json?asset[key]='+path,
             method: 'DELETE',
-            query: {
-                'asset[key]': path
+            headers: {
+                'Content-Length': 0
             }
         };
 
         var req = https.request(options, function(res) {
             res.setEncoding('utf8');
 
-            res.on('end', function () {
-                shopify.notify(res, "deleting file");
+            var body = '';
+            
+            res.on('data', function(chunk) {
+              body += chunk;
             });
 
-            return done(true);
+            res.on('end', function () {
+              if (res.statusCode >= 400 ) {
+                shopify.notify(res, "delete failed with response " + body);
+              } else {
+                shopify.notify(res, "deleted file " + path + " from shopify");
+              }
+                shopify.notify(res, "deleting file");
+                return done(true);
+            });
+
         });
 
         req.on('error', function(e) {
