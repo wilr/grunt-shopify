@@ -151,8 +151,7 @@ module.exports = function(grunt) {
         shopify.notify("Deleting " + file);
             file = file.replace("\\","/");
 
-        var path = shopify.getAssetKey(file);
-            path = path.replace("\\","/")
+        var path = shopify.getAssetKey(file).replace("\\","/");
             
         var options = {
             host: shopify.getHost(),
@@ -215,8 +214,7 @@ module.exports = function(grunt) {
         shopify.notify("Uploading " + file );
 
         shopify.isBinaryFile(file, function(ascii, data) {
-            var key = shopify.getAssetKey(file),
-                key = key.replace("\\","/");
+            var key = shopify.getAssetKey(file).replace("\\","/"),
                 post = {};
                 
             if(ascii) {
