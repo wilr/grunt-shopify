@@ -149,9 +149,10 @@ module.exports = function(grunt) {
      */
     shopify.remove = function(file, done) {
         shopify.notify("Deleting " + file);
+            file = file.replace("\\","/");
 
-        var path = shopify.getAssetKey(file);
-
+        var path = shopify.getAssetKey(file).replace("\\","/");
+            
         var options = {
             host: shopify.getHost(),
             auth: shopify.getAuth(),
@@ -209,12 +210,13 @@ module.exports = function(grunt) {
      * @param {function} async completion callback 
      */
     shopify.upload = function(file, done) {
+        file = file.replace("\\","/");
         shopify.notify("Uploading " + file );
 
         shopify.isBinaryFile(file, function(ascii, data) {
-            var key = shopify.getAssetKey(file),
+            var key = shopify.getAssetKey(file).replace("\\","/"),
                 post = {};
-
+                
             if(ascii) {
                 // if the file is a binary file 
                 post = JSON.stringify({

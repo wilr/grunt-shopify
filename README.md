@@ -55,7 +55,8 @@ grunt.initConfig({
     options: {
       api_key: "API KEY",
       password: "PASSWORD",
-      url: "storename.myshopify.com"
+      url: "storename.myshopify.com",
+      base: "shop/"
     }
   },
 })
