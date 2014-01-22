@@ -137,6 +137,16 @@ Default value: `''`
 Your shopify store url. Even if you have a custom domain setup, use the Shopify
 domain as your API url (e.g `storename.myshopify.com`)
 
+#### theme [Optional]
+
+Type: `String`
+Default value: `''`
+
+The id of the specific theme within your shop that you would like to edit, which
+can be found via the Shopify web interface - navigate to Themes, open the relevant theme,
+and copy the `theme_id` from the url - i.e. `https://storename.myshopify.com/admin/themes/theme_id/settings`.
+This key can be omitted entirely if working on the live theme, or left as an empty string.
+
 #### base
 
 Type: `String`

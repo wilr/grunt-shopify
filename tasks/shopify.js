@@ -17,7 +17,7 @@ module.exports = function(grunt) {
         growl = require('growl');
 
     /*
-     * Return the base api host with the basic auth. Does not require the 
+     * Return the base api host with the basic auth. Does not require the
      * protocol.
      *
      * @return {string}
@@ -39,7 +39,25 @@ module.exports = function(grunt) {
         return config.options.api_key + ":" + config.options.password;
     };
 
-    /*
+   /*
+   * Return the theme id
+   * @return {string}
+   */
+  shopify.getTheme = function() {
+    var config = grunt.config('shopify');
+    var theme_id = ('theme' in config.options ? config.options.theme : false);
+    return (theme_id ? theme_id : false);
+  };
+
+  /*
+   * Return remote path, including the theme id if present in Gruntfile
+   * @return {string}
+   */
+  shopify.remotePath = function() {
+    return (shopify.getTheme() ? '/admin/themes/' + shopify.getTheme() : '/admin');
+  };
+
+  /*
      * Helper to detect whether a file is binary or not. Used to handle sending
      * image assets to shopify vs other assets
      *
@@ -58,14 +76,14 @@ module.exports = function(grunt) {
             }
 
             for (i = 0, len = data.length; i < len; i++) {
-                if (data[i] > 127) { 
-                    ascii = false; 
+                if (data[i] > 127) {
+                    ascii = false;
 
-                    break; 
-                }   
-            }   
+                    break;
+                }
+            }
 
-            callback(ascii, data); 
+            callback(ascii, data);
         });
     };
 
@@ -99,7 +117,7 @@ module.exports = function(grunt) {
                     growl(msg, { title: 'Grunt Shopify'});
                 }
 
-                if(!config.options.disable_grunt_log) {            
+                if(!config.options.disable_grunt_log) {
                     grunt.log.ok('[grunt-shopify] - ' + msg);
                 }
             }
@@ -109,11 +127,11 @@ module.exports = function(grunt) {
                growl(res, { title: 'Grunt Shopify'});
             }
 
-            if(!config.options.disable_grunt_log) {            
+            if(!config.options.disable_grunt_log) {
                 grunt.log.ok('[grunt-shopify] - ' + res);
             }
         }
-    }; 
+    };
 
     /*
      * Convert a file path on the local file system to an asset path in shopify
@@ -141,22 +159,22 @@ module.exports = function(grunt) {
     /*
      * Remove a given file path from shopify.
      *
-     * File should be the relative path on the local filesystem. See 
+     * File should be the relative path on the local filesystem. See
      * getAssetKey for the conversion to remote asset location
      *
      * @param {string} file
-     * @param {function} async completion callback 
+     * @param {function} async completion callback
      */
     shopify.remove = function(file, done) {
         shopify.notify("Deleting " + file);
             file = file.replace("\\","/");
 
         var path = shopify.getAssetKey(file).replace("\\","/");
-            
+
         var options = {
             host: shopify.getHost(),
             auth: shopify.getAuth(),
-            path: '/admin/assets.json?asset[key]='+path,
+            path: shopify.remotePath() + '/assets.json?asset[key]=' + path,
             method: 'DELETE',
             headers: {
                 'Content-Length': 0
@@ -167,7 +185,7 @@ module.exports = function(grunt) {
             res.setEncoding('utf8');
 
             var body = '';
-            
+
             res.on('data', function(chunk) {
               body += chunk;
             });
@@ -207,7 +225,7 @@ module.exports = function(grunt) {
      *
      * Some requests may fail if those folders are ignored
      * @param {string} file
-     * @param {function} async completion callback 
+     * @param {function} async completion callback
      */
     shopify.upload = function(file, done) {
         file = file.replace("\\","/");
@@ -216,9 +234,9 @@ module.exports = function(grunt) {
         shopify.isBinaryFile(file, function(ascii, data) {
             var key = shopify.getAssetKey(file).replace("\\","/"),
                 post = {};
-                
+
             if(ascii) {
-                // if the file is a binary file 
+                // if the file is a binary file
                 post = JSON.stringify({
                     'asset': {
                         'value': data.toString('utf8'),
@@ -238,7 +256,7 @@ module.exports = function(grunt) {
             var options = {
                 hostname: shopify.getHost(),
                 auth: shopify.getAuth(),
-                path: '/admin/assets.json',
+                path: shopify.remotePath() + '/assets.json',
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -248,9 +266,9 @@ module.exports = function(grunt) {
 
             var req = https.request(options, function(res) {
                 res.setEncoding('utf8');
-                
+
                 var body = '';
-                
+
                 res.on('data', function(chunk) {
                   body += chunk;
                 });
@@ -278,7 +296,7 @@ module.exports = function(grunt) {
 
         return true;
     };
-    
+
     shopify.deploy = function(done) {
         var c = grunt.config('shopify');
         var paths = [];
@@ -299,29 +317,31 @@ module.exports = function(grunt) {
         }
         next(0);
     };
-    
+
     shopify.getOneAsset = function(key, done) {
+        var remote_path = shopify.remotePath() + '/assets.json?asset[key]=' + key;
+        if(shopify.getTheme()) { remote_path += '&theme_id=' + shopify.getTheme(); } // Add theme_id param to path if theme is specified
         var options = {
             hostname: shopify.getHost(),
             auth: shopify.getAuth(),
-            path: '/admin/assets.json?asset[key]='+key,
+            path: remote_path,
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
             }
         };
-        
+
         var req = https.request(options, function(res) {
             res.setEncoding('utf8');
-        
+
             var c = grunt.config('shopify');
             var body = '';
             var destination = path.join(c.options.base || '', key);
-            
+
             res.on('data', function(chunk) {
                 body += chunk;
             });
-            
+
             res.on('end', function () {
                 try {
                     var obj = JSON.parse(body);
@@ -339,7 +359,7 @@ module.exports = function(grunt) {
                         }
                         if (grunt.option('no-write')) {
                             shopify.notify(util.format('dry run: Downloaded %s to %s', key, destination));
-                            console.log(util.inspect(obj)); 
+                            console.log(util.inspect(obj));
                             done(true);
                         } else {
                             fs.writeFile(destination, value, encoding, function(err) {
@@ -362,31 +382,31 @@ module.exports = function(grunt) {
                 }
             });
         });
-        
+
         req.on('error', function(e) {
             shopify.notify('Problem with GET request: ' + e.message);
             return done(false);
         });
         req.end();
     };
-    
+
     shopify.download = function(done) {
         var options = {
             hostname: shopify.getHost(),
             auth: shopify.getAuth(),
-            path: '/admin/assets.json',
+            path: shopify.remotePath() + '/assets.json',
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
             }
         };
-        
+
         var req = https.request(options, function(res) {
             res.setEncoding('utf8');
-        
+
             var body = '';
             var obj;
-        
+
             function next(i) {
                 if (i < obj.assets.length) {
                     shopify.getOneAsset(obj.assets[i].key, function(success) {
@@ -400,11 +420,11 @@ module.exports = function(grunt) {
                     done(true);
                 }
             };
-            
+
             res.on('data', function(chunk) {
                 body += chunk;
             });
-            
+
             res.on('end', function () {
                 try {
                     obj = JSON.parse(body);
@@ -420,19 +440,19 @@ module.exports = function(grunt) {
                 }
             });
         });
-        
+
         req.on('error', function(e) {
             shopify.notify('Problem with GET request: ' + e.message);
             return done(false);
         });
-        
+
         req.end();
     };
 
     /*
      * Shopify noop.
      *
-     * Use watch to monitor changes. To do an initial upload of all files on 
+     * Use watch to monitor changes. To do an initial upload of all files on
      * your local copy, use the shopify upload functionality.
      */
     grunt.registerTask('shopify', function() {
@@ -442,7 +462,7 @@ module.exports = function(grunt) {
     grunt.registerTask('shopify:download', 'Downloads a single theme file from shopify, or the entire theme if no file is specified', function(p) {
         var done = this.async();
         if (p) {
-          var key = shopify.getAssetKey(p); 
+          var key = shopify.getAssetKey(p);
           shopify.getOneAsset(key, done);
         } else {
           shopify.download(done);
@@ -476,7 +496,7 @@ module.exports = function(grunt) {
         } catch (e) {
             //
         }
-        
+
         if(upload) {
             switch (action) {
                 case 'deleted':
