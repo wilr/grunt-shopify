@@ -229,10 +229,10 @@ module.exports = function(grunt) {
      */
     shopify.upload = function(file, done) {
         file = file.replace("\\","/");
-        shopify.notify("Uploading " + file );
+        shopify.notify("Uploading " + file.replace("\\","/") );
 
         shopify.isBinaryFile(file, function(ascii, data) {
-            var key = shopify.getAssetKey(file).replace("\\","/"),
+            var key = shopify.getAssetKey(file.replace("\\","/")),
                 post = {};
 
             if(ascii) {
@@ -305,7 +305,7 @@ module.exports = function(grunt) {
         });
         function next(i) {
             if (i < paths.length) {
-                shopify.upload(paths[i], function(success) {
+                shopify.upload(paths[i].replace("\\","/"), function(success) {
                     if (!success) {
                         return done(false);
                     }
@@ -480,7 +480,7 @@ module.exports = function(grunt) {
 
     grunt.registerTask('shopify:delete', 'Removes a theme file from Shopify', function(p) {
         var done = this.async();
-        shopify.remove(p, done);
+        shopify.remove(p.replace("\\","/"), done);
     });
 
     /**
@@ -500,13 +500,13 @@ module.exports = function(grunt) {
         if(upload) {
             switch (action) {
                 case 'deleted':
-                    shopify.remove(filepath, function(){});
+                    shopify.remove(filepath.replace("\\","/"), function(){});
 
                     break;
                 case 'added':
                 case 'changed':
                 case 'renamed':
-                    shopify.upload(filepath, function(){});
+                    shopify.upload(filepath.replace("\\","/"), function(){});
 
                     break;
             }
