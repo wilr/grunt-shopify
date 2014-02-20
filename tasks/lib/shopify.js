@@ -4,6 +4,7 @@ var fs = require('fs'),
     util = require('util'),
     https = require('https'),
     growl = require('growl'),
+    async = require('async'),
     isBinaryFile = require('isbinaryfile'),
     ShopifyApi = require('shopify-api');
 
@@ -63,6 +64,38 @@ module.exports = function(grunt) {
         }
 
         return path.replace(/^\/+/, '');
+    };
+
+    /*
+     * Save a Shopify asset to disk.
+     *
+     * @param {string} key
+     * @param {Object} obj
+     * @param {Function} done
+     */
+    shopify._saveAsset = function(key, obj, done) {
+        var contents;
+
+        var c = grunt.config('shopify');
+        var destination = path.join(c.options.base || '', key);
+
+        if (typeof obj.asset.value !== 'undefined') {
+            contents = obj.asset.value;
+        } else if (typeof obj.asset.attachment !== 'undefined') {
+            contents = new Buffer(obj.asset.attachment, 'base64');
+        } else {
+            done(new Error('Parsed object is not complete'));
+            return;
+        }
+
+        if (grunt.option('no-write')) {
+            console.log(util.inspect(obj));
+        } else {
+            grunt.file.write(destination, contents);
+            shopify.notify('File "' + key + '" saved to disk.');
+        }
+
+        done();
     };
 
     /*
@@ -302,141 +335,74 @@ module.exports = function(grunt) {
         next(0);
     };
 
-    shopify.getOneAsset = function(key, done) {
-        var remote_path = shopify.remotePath() + '/assets.json?asset[key]=' + key;
+    /*
+     * Download an asset from Shopify.
+     *
+     * @param {string} filepath
+     * @param {Function} done
+     */
+    shopify.download = function(filepath, done) {
+        var api = shopify._getApi();
+        var themeId = shopify._getThemeId();
+        var key = shopify._makeAssetKey(filepath);
 
-        // Add theme_id param to path if theme is specified
-        if (shopify.getTheme()) {
-          remote_path += '&theme_id=' + shopify.getTheme();
+        function onRetrieve(err, obj) {
+            if (err) {
+                done(err);
+                return;
+            }
+
+            if (!obj.asset) {
+                done(new Error('Failed to get asset data'));
+                return;
+            }
+
+            shopify._saveAsset(key, obj, done);
         }
 
-        var options = {
-            hostname: shopify.getHost(),
-            auth: shopify.getAuth(),
-            path: remote_path,
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        };
-
-        var req = https.request(options, function(res) {
-            res.setEncoding('utf8');
-
-            var c = grunt.config('shopify');
-            var body = '';
-            var destination = path.join(c.options.base || '', key);
-
-            res.on('data', function(chunk) {
-                body += chunk;
-            });
-
-            res.on('end', function () {
-                try {
-                    var obj = JSON.parse(body);
-                    if (obj.asset) {
-                        var value, encoding;
-                        if (typeof obj.asset.value !== 'undefined') {
-                            value = obj.asset.value;
-                            encoding = 'utf8';
-                        } else if (typeof obj.asset.attachment !== 'undefined') {
-                            value = new Buffer(obj.asset.attachment, 'base64');
-                            encoding = null;
-                        } else {
-                            grunt.log.error('Parsed object is not complete: ' + util.inspect(obj));
-                            return done(false);
-                        }
-
-                        if (grunt.option('no-write')) {
-                            shopify.notify(util.format('dry run: Downloaded %s to %s', key, destination));
-                            console.log(util.inspect(obj));
-                            done(true);
-                        } else {
-                            fs.writeFile(destination, value, encoding, function(err) {
-                                if (err) {
-                                    grunt.log.error(util.format('Error saving asset %s to %s: %s', key, destination, err.message));
-                                    done(false);
-                                } else {
-                                    shopify.notify(util.format('Downloaded %s to %s', key, destination));
-                                    done(true);
-                                }
-                            });
-                        }
-                    } else {
-                        grunt.log.error('Parsed object is not complete: ' + util.inspect(obj));
-                        return done(false);
-                    }
-                } catch(e) {
-                    grunt.log.error('Failed to parse JSON response');
-                    done(false);
-                }
-            });
-        });
-
-        req.on('error', function(e) {
-            shopify.notify('Problem with GET request: ' + e.message);
-            return done(false);
-        });
-        req.end();
+        if (themeId) {
+            api.asset.retrieve(themeId, key, onRetrieve);
+        } else {
+            api.assetLegacy.retrieve(key, onRetrieve);
+        }
     };
 
-    shopify.download = function(done) {
-        var options = {
-            hostname: shopify.getHost(),
-            auth: shopify.getAuth(),
-            path: shopify.remotePath() + '/assets.json',
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        };
+    /*
+     * Download an entire theme from Shopify.
+     *
+     * @param {Function} done
+     */
+    shopify.downloadTheme = function(done) {
+        var api = shopify._getApi();
+        var themeId = shopify._getThemeId();
 
-        var req = https.request(options, function(res) {
-            res.setEncoding('utf8');
-
-            var body = '';
-            var obj;
-
-            function next(i) {
-                if (i < obj.assets.length) {
-                    shopify.getOneAsset(obj.assets[i].key, function(success) {
-                        if (!success) {
-                          return done(false);
-                        }
-                        next(i+1);
-                    });
-                } else {
-                    shopify.notify('Theme sync complete.');
-                    done(true);
-                }
+        function onRetrieve(err, obj) {
+            if (err) {
+                done(err);
+                return;
             }
 
-            res.on('data', function(chunk) {
-                body += chunk;
-            });
+            if (!obj.assets) {
+                done(new Error('Failed to get theme assets list'));
+                return;
+            }
 
-            res.on('end', function () {
-                try {
-                    obj = JSON.parse(body);
-                    if (obj.assets) {
-                        next(0);
-                    } else {
-                        grunt.log.error('Failed to get shopify assets');
-                        return done(false);
-                    }
-                } catch (e) {
-                    grunt.log.error('Failed to parse JSON response');
-                    done(false);
+            async.eachSeries(obj.assets, function(asset, next) {
+                shopify.download(asset.key, next);
+            }, function(err) {
+                if (!err) {
+                    shopify.notify('Theme download complete.');
                 }
+
+                done(err);
             });
-        });
+        }
 
-        req.on('error', function(e) {
-            shopify.notify('Problem with GET request: ' + e.message);
-            return done(false);
-        });
-
-        req.end();
+        if (themeId) {
+            api.asset.list(themeId, onRetrieve);
+        } else {
+            api.assetLegacy.list(onRetrieve);
+        }
     };
 
     return shopify;

@@ -39,6 +39,7 @@
   ],
   "dependencies": {
     "glob": "~3.2.3",
+    "async": "~0.2.9",
     "isbinaryfile": "~2.0.0",
     "shopify-api": "~0.2.0"
   }

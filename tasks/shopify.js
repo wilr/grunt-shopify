@@ -24,10 +24,9 @@ module.exports = function(grunt) {
     grunt.registerTask('shopify:download', 'Downloads a single theme file from shopify, or the entire theme if no file is specified', function(p) {
         var done = this.async();
         if (p) {
-          var key = shopify.getAssetKey(p);
-          shopify.getOneAsset(key, done);
+          shopify.download(p, done);
         } else {
-          shopify.download(done);
+          shopify.downloadTheme(done);
         }
     });
 
