@@ -1,8 +1,6 @@
 var fs = require('fs'),
     path = require('path'),
-    glob = require('glob'),
     util = require('util'),
-    https = require('https'),
     growl = require('growl'),
     async = require('async'),
     isBinaryFile = require('isbinaryfile'),
@@ -99,47 +97,6 @@ module.exports = function(grunt) {
     };
 
     /*
-     * Return the base api host with the basic auth. Does not require the
-     * protocol.
-     *
-     * @return {string}
-     */
-    shopify.getHost = function() {
-        var config = grunt.config('shopify');
-
-        return config.options.url;
-    };
-
-    /*
-     * Return the authentication header for basic auth
-     *
-     * @return {string}
-     */
-    shopify.getAuth = function() {
-        var config = grunt.config('shopify');
-
-        return config.options.api_key + ":" + config.options.password;
-    };
-
-    /*
-     * Return the theme id
-     * @return {string}
-     */
-    shopify.getTheme = function() {
-        var config = grunt.config('shopify');
-        var theme_id = ('theme' in config.options ? config.options.theme : false);
-        return (theme_id ? theme_id : false);
-    };
-
-    /*
-     * Return remote path, including the theme id if present in Gruntfile
-     * @return {string}
-     */
-    shopify.remotePath = function() {
-        return (shopify.getTheme() ? '/admin/themes/' + shopify.getTheme() : '/admin');
-    };
-
-    /*
      * Helper for reporting messages to the user.
      *
      * @param {string} msg
@@ -154,29 +111,6 @@ module.exports = function(grunt) {
         if (!config.options.disable_grunt_log) {
             grunt.log.ok('[grunt-shopify] - ' + msg);
         }
-    };
-
-    /*
-     * Convert a file path on the local file system to an asset path in shopify
-     * as you may run grunt at a higher directory locally.
-     *
-     * The original path to a file may be something like shop/assets/site.css
-     * whereas we require assets/site.css in the API. To customize the base
-     * set shopify.options.base config option.
-     *
-     * @param {string}
-     * @return {string}
-     *
-     * @todo
-     */
-    shopify.getAssetKey = function(path) {
-        var c = grunt.config('shopify');
-
-        if (c.options.base) {
-            return path.substring(path.indexOf(c.options.base) + c.options.base.length);
-        }
-
-        return path;
     };
 
     /*

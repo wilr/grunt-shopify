@@ -8,8 +8,7 @@
 'use strict';
 
 module.exports = function(grunt) {
-    var fs = require('fs'),
-        shopify = require('./lib/shopify')(grunt);
+    var shopify = require('./lib/shopify')(grunt);
 
     /*
      * Shopify noop.
