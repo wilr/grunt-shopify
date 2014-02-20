@@ -38,6 +38,7 @@
     "shopify"
   ],
   "dependencies": {
-    "glob": "~3.2.3"
+    "glob": "~3.2.3",
+    "shopify-api": "~0.2.0"
   }
 }

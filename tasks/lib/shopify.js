@@ -3,10 +3,33 @@ var fs = require('fs'),
     glob = require('glob'),
     util = require('util'),
     https = require('https'),
-    growl = require('growl');
+    growl = require('growl'),
+    ShopifyApi = require('shopify-api');
 
 module.exports = function(grunt) {
     var shopify = {};
+    shopify._api = false;
+
+    /*
+     * Get the Shopify API instance.
+     *
+     * @return {ShopifyApi}
+     */
+    shopify._getApi = function() {
+        if (!shopify._api) {
+            var config = grunt.config('shopify');
+            var opts = {
+                auth: config.options.api_key + ':' + config.options.password,
+                host: config.options.url,
+                port: config.options.port,
+                timeout: config.options.timeout
+            };
+
+            shopify._api = new ShopifyApi(opts);
+        }
+
+        return shopify._api;
+    };
 
     /*
      * Return the base api host with the basic auth. Does not require the
