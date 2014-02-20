@@ -38,7 +38,7 @@ module.exports = function(grunt) {
      */
     shopify._getThemeId = function() {
         var config = grunt.config('shopify');
-        return ('theme' in config.options) ? config.options.themeId : false;
+        return ('theme' in config.options) ? config.options.theme : false;
     };
 
     /*
