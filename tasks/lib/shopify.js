@@ -4,6 +4,7 @@ var fs = require('fs'),
     util = require('util'),
     https = require('https'),
     growl = require('growl'),
+    isBinaryFile = require('isbinaryfile'),
     ShopifyApi = require('shopify-api');
 
 module.exports = function(grunt) {
@@ -70,36 +71,6 @@ module.exports = function(grunt) {
      */
     shopify.remotePath = function() {
         return (shopify.getTheme() ? '/admin/themes/' + shopify.getTheme() : '/admin');
-    };
-
-    /*
-     * Helper to detect whether a file is binary or not. Used to handle sending
-     * image assets to shopify vs other assets
-     *
-     * @param {string}
-     * @param {Function}
-     */
-    shopify.isBinaryFile = function(file, callback) {
-        var ascii = true,
-            i, len;
-
-        fs.readFile(file, function(err, data) {
-            if (err) {
-                grunt.log.error("isBinaryFile failed on " + file +": "+ err);
-
-                return false;
-            }
-
-            for (i = 0, len = data.length; i < len; i++) {
-                if (data[i] > 127) {
-                    ascii = false;
-
-                    break;
-                }
-            }
-
-            callback(ascii, data);
-        });
     };
 
     /**
@@ -238,77 +209,43 @@ module.exports = function(grunt) {
      *      - General assets => "assets/"
      *
      * Some requests may fail if those folders are ignored
-     * @param {string} file
-     * @param {function} async completion callback
+     * @param {string} filepath
+     * @param {Function} done
      */
-    shopify.upload = function(file, done) {
-        file = file.replace("\\","/");
-        shopify.notify("Uploading " + file.replace("\\","/") );
+    shopify.upload = function(filepath, done) {
+        var api = shopify._getApi();
+        var themeId = shopify._getThemeId();
+        var key = shopify._makeAssetKey(filepath);
 
-        shopify.isBinaryFile(file, function(ascii, data) {
-            var key = shopify.getAssetKey(file.replace("\\","/")),
-                post = {};
+        var isBinary = isBinaryFile(filepath);
+        var contents = grunt.file.read(filepath, { encoding: isBinary ? null : 'utf8' });
+        var props = {
+            asset: {
+                key: key
+            }
+        };
 
-            if(ascii) {
-                // if the file is a binary file
-                post = JSON.stringify({
-                    'asset': {
-                        'value': data.toString('utf8'),
-                        'key': key
-                    }
-                });
+        if (isBinary) {
+            props.asset.attachment = contents.toString('base64');
+        } else {
+            props.asset.value = contents.toString();
+        }
 
-            } else {
-                post = JSON.stringify({
-                    'asset': {
-                        'attachment': data.toString('base64'),
-                        'key': key
-                    }
-                });
+        function onUpdate(err) {
+            if (err) {
+                done(err);
+                return;
             }
 
-            var options = {
-                hostname: shopify.getHost(),
-                auth: shopify.getAuth(),
-                path: shopify.remotePath() + '/assets.json',
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': Buffer.byteLength(post,'utf8')
-                }
-            };
+            shopify.notify('File "' + key + '" uploaded.');
+            done();
+        }
 
-            var req = https.request(options, function(res) {
-                res.setEncoding('utf8');
-
-                var body = '';
-
-                res.on('data', function(chunk) {
-                  body += chunk;
-                });
-
-                res.on('end', function () {
-                  if (res.statusCode >= 400 ) {
-                    shopify.notify(res, "upload failed with response " + body);
-                  } else {
-                    shopify.notify(res, "uploaded file to shopify as " + key);
-                  }
-                    return done(true);
-                });
-
-            });
-
-            req.on('error', function(e) {
-                shopify.notify('Problem with PUT request: ' + e.message);
-
-                return done(false);
-            });
-
-            req.write(post);
-            req.end();
-        });
-
-        return true;
+        if (themeId) {
+            api.asset.update(themeId, props, onUpdate);
+        } else {
+            api.assetLegacy.update(props, onUpdate);
+        }
     };
 
     shopify.deploy = function(done) {
