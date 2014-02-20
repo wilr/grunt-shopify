@@ -139,47 +139,20 @@ module.exports = function(grunt) {
         return (shopify.getTheme() ? '/admin/themes/' + shopify.getTheme() : '/admin');
     };
 
-    /**
-     * Helper for reporting Http response success and error messages to the
-     * user. To notify the user without a response (i.e for an info note) simply
-     * don't pass a response notify("hello");
+    /*
+     * Helper for reporting messages to the user.
      *
-     * @param {response}|{string}
-     * @param {string}
+     * @param {string} msg
      */
-    shopify.notify = function(res, msg) {
+    shopify.notify = function(msg) {
         var config = grunt.config('shopify');
 
-        if (typeof res !== "string") {
-            if (res.statusCode >= 400) {
-                msg = "Error "+ msg +" (Status Code: "+ res.statusCode + ")";
+        if (!config.options.disable_growl_notifications) {
+            growl(msg, { title: 'Grunt Shopify'});
+        }
 
-                if (!config.options.disable_growl_notifications) {
-                    growl(msg, { title: 'Grunt Shopify'});
-                }
-
-                if (!config.options.disable_grunt_log) {
-                    grunt.log.error('[grunt-shopify] - ' + msg);
-                }
-            } else {
-                msg = "Success "+ msg +" (Status Code: "+ res.statusCode + ")";
-
-                if (!config.options.disable_growl_notifications) {
-                    growl(msg, { title: 'Grunt Shopify'});
-                }
-
-                if (!config.options.disable_grunt_log) {
-                    grunt.log.ok('[grunt-shopify] - ' + msg);
-                }
-            }
-        } else {
-            if (!config.options.disable_growl_notifications) {
-               growl(res, { title: 'Grunt Shopify'});
-            }
-
-            if (!config.options.disable_grunt_log) {
-                grunt.log.ok('[grunt-shopify] - ' + res);
-            }
+        if (!config.options.disable_grunt_log) {
+            grunt.log.ok('[grunt-shopify] - ' + msg);
         }
     };
 
