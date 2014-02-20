@@ -32,6 +32,16 @@ module.exports = function(grunt) {
     };
 
     /*
+     * Get the base path.
+     *
+     * @return {string}
+     */
+    shopify._getBasePath = function() {
+        var config = grunt.config('shopify');
+        return ('base' in config.options) ? config.options.base : '';
+    };
+
+    /*
      * Get the Theme ID.
      *
      * @return {integer}
@@ -55,10 +65,9 @@ module.exports = function(grunt) {
     shopify._makeAssetKey = function(path) {
         path = path.replace(/\\/g, '/');
 
-        var c = grunt.config('shopify');
-
-        if (c.options.base) {
-            path = path.substring(path.indexOf(c.options.base) + c.options.base.length).replace(/\\/g, '/');
+        var basePath = shopify._getBasePath();
+        if (basePath.length > 0) {
+            path = path.substring(path.indexOf(basePath) + basePath.length).replace(/\\/g, '/');
         }
 
         return path.replace(/^\/+/, '');
@@ -74,8 +83,8 @@ module.exports = function(grunt) {
     shopify._saveAsset = function(key, obj, done) {
         var contents;
 
-        var c = grunt.config('shopify');
-        var destination = path.join(c.options.base || '', key);
+        var basePath = shopify._getBasePath();
+        var destination = path.join(basePath, key);
 
         if (typeof obj.asset.value !== 'undefined') {
             contents = obj.asset.value;
@@ -197,8 +206,8 @@ module.exports = function(grunt) {
     shopify.deploy = function(done) {
         var c = grunt.config('shopify');
 
-        var base = c.options.base || '';
-        var filepaths = grunt.file.expand({ cwd: base }, [
+        var basePath = shopify._getBasePath();
+        var filepaths = grunt.file.expand({ cwd: basePath }, [
             'assets/*.*',
             'config/*.*',
             'layout/*.*',
@@ -207,7 +216,7 @@ module.exports = function(grunt) {
         ]);
 
         async.eachSeries(filepaths, function(filepath, next) {
-            shopify.upload(path.join(base, filepath), next);
+            shopify.upload(path.join(basePath, filepath), next);
         }, function(err) {
           if (!err) {
               shopify.notify('Theme deploy complete.');
