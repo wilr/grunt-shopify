@@ -33,6 +33,39 @@ module.exports = function(grunt) {
     };
 
     /*
+     * Get the Theme ID.
+     *
+     * @return {integer}
+     */
+    shopify._getThemeId = function() {
+        var config = grunt.config('shopify');
+        return ('theme' in config.options) ? config.options.themeId : false;
+    };
+
+    /*
+     * Convert a file path on the local file system to an asset path in shopify
+     * as you may run grunt at a higher directory locally.
+     *
+     * The original path to a file may be something like shop/assets/site.css
+     * whereas we require assets/site.css in the API. To customize the base
+     * set shopify.options.base config option.
+     *
+     * @param {string}
+     * @return {string}
+     */
+    shopify._makeAssetKey = function(path) {
+        path = path.replace(/\\/g, '/');
+
+        var c = grunt.config('shopify');
+
+        if (c.options.base) {
+            path = path.substring(path.indexOf(c.options.base) + c.options.base.length).replace(/\\/g, '/');
+        }
+
+        return path.replace(/^\/+/, '');
+    };
+
+    /*
      * Return the base api host with the basic auth. Does not require the
      * protocol.
      *
