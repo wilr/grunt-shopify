@@ -48,33 +48,24 @@ module.exports = function(grunt) {
      * Grunt watch event
      */
     grunt.event.on('watch', function(action, filepath) {
-        var upload = true;
-
-        try {
-            if(fs.lstatSync(filepath).isDirectory()) {
-                upload = false;
+        function errorHandler(err) {
+            if (err) {
+                grunt.log.error(err);
             }
-        } catch (e) {
-            //
         }
 
-        if(upload) {
+        if (action === 'deleted') {
+            shopify.remove(filepath, errorHandler);
+        } else if (grunt.file.isFile(filepath)) {
             switch (action) {
-                case 'deleted':
-                    shopify.remove(filepath, function(){});
-
-                    break;
                 case 'added':
                 case 'changed':
                 case 'renamed':
-                    shopify.upload(filepath.replace("\\","/"), function(){});
-
-                    break;
+                shopify.upload(filepath, errorHandler);
+                break;
             }
         } else {
-            shopify.notify("Skipping directory "+ filepath);
+            shopify.notify('Skipping non-file ' + filepath);
         }
-
-        return true;
     });
 };
