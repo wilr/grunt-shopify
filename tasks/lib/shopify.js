@@ -207,61 +207,31 @@ module.exports = function(grunt) {
     };
 
     /*
-     * Remove a given file path from shopify.
+     * Remove a given file path from Shopify.
      *
-     * File should be the relative path on the local filesystem. See
-     * getAssetKey for the conversion to remote asset location
+     * File should be the relative path on the local filesystem.
      *
-     * @param {string} file
-     * @param {function} async completion callback
+     * @param {string} filepath
+     * @param {Function} done
      */
-    shopify.remove = function(file, done) {
-        shopify.notify("Deleting " + file);
-            file = file.replace("\\","/");
+    shopify.remove = function(filepath, done) {
+        var api = shopify._getApi();
+        var themeId = shopify._getThemeId();
+        var key = shopify._makeAssetKey(filepath);
 
-        var path = shopify.getAssetKey(file).replace("\\","/");
-
-        var options = {
-            host: shopify.getHost(),
-            auth: shopify.getAuth(),
-            path: shopify.remotePath() + '/assets.json?asset[key]=' + path,
-            method: 'DELETE',
-            headers: {
-                'Content-Length': 0
+        function onDestroy(err) {
+            if (!err) {
+                shopify.notify('File "' + key + '" removed.');
             }
-        };
 
-        var req = https.request(options, function(res) {
-            res.setEncoding('utf8');
+            done(err);
+        }
 
-            var body = '';
-
-            res.on('data', function(chunk) {
-              body += chunk;
-            });
-
-            res.on('end', function () {
-              if (res.statusCode >= 400 ) {
-                shopify.notify(res, "delete failed with response " + body);
-              } else {
-                shopify.notify(res, "deleted file " + path + " from shopify");
-              }
-
-              shopify.notify(res, "deleting file");
-              return done(true);
-            });
-
-        });
-
-        req.on('error', function(e) {
-            shopify.notify('Problem with DELETE request: ' + e.message);
-
-            return done(false);
-        });
-
-        req.end();
-
-        return true;
+        if (themeId) {
+            api.asset.destroy(themeId, key, onDestroy);
+        } else {
+            api.assetLegacy.destroy(key, onDestroy);
+        }
     };
 
     /*
