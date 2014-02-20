@@ -26,7 +26,7 @@
     "node": ">= 0.8.0"
   },
   "peerDependencies": {
-    "grunt-contrib-watch": "~0.4.4",
+    "grunt-contrib-watch": ">=0.4.4",
     "grunt": "~0.4.1",
     "growl": "~1.7"
   },
@@ -38,6 +38,8 @@
     "shopify"
   ],
   "dependencies": {
-    "glob": "~3.2.3"
+    "async": "~0.2.9",
+    "isbinaryfile": "~2.0.0",
+    "shopify-api": "~0.2.0"
   }
 }
