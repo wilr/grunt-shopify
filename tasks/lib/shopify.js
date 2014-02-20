@@ -314,25 +314,32 @@ module.exports = function(grunt) {
         }
     };
 
+    /*
+     * Deploy an entire theme to Shopify.
+     *
+     * @param {Function} done
+     */
     shopify.deploy = function(done) {
         var c = grunt.config('shopify');
-        var paths = [];
-        ['assets','config','layout','snippets','templates'].forEach(function(folder) {
-          paths = paths.concat(glob.sync(path.join(c.options.base || '', folder, '*.*')));
+
+        var base = c.options.base || '';
+        var filepaths = grunt.file.expand({ cwd: base }, [
+            'assets/*.*',
+            'config/*.*',
+            'layout/*.*',
+            'snippets/*.*',
+            'templates/*.*'
+        ]);
+
+        async.eachSeries(filepaths, function(filepath, next) {
+            shopify.upload(path.join(base, filepath), next);
+        }, function(err) {
+          if (!err) {
+              shopify.notify('Theme deploy complete.');
+          }
+
+          done(err);
         });
-        function next(i) {
-            if (i < paths.length) {
-                shopify.upload(paths[i].replace("\\","/"), function(success) {
-                    if (!success) {
-                        return done(false);
-                    }
-                    next(i+1);
-                });
-            } else {
-                done(true);
-            }
-        }
-        next(0);
     };
 
     /*
