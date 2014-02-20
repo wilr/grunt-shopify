@@ -41,7 +41,7 @@ module.exports = function(grunt) {
 
     grunt.registerTask('shopify:delete', 'Removes a theme file from Shopify', function(p) {
         var done = this.async();
-        shopify.remove(p.replace("\\","/"), done);
+        shopify.remove(p, done);
     });
 
     /**
@@ -61,7 +61,7 @@ module.exports = function(grunt) {
         if(upload) {
             switch (action) {
                 case 'deleted':
-                    shopify.remove(filepath.replace("\\","/"), function(){});
+                    shopify.remove(filepath, function(){});
 
                     break;
                 case 'added':
