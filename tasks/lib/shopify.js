@@ -63,9 +63,10 @@ module.exports = function(grunt) {
      * @return {string}
      */
     shopify._makeAssetKey = function(path) {
+        var basePath = shopify._getBasePath();
+        
         path = path.replace(/\\/g, '/');
 
-        var basePath = shopify._getBasePath();
         if (basePath.length > 0) {
             path = path.substring(path.indexOf(basePath) + basePath.length).replace(/\\/g, '/');
         }
@@ -81,10 +82,12 @@ module.exports = function(grunt) {
      * @param {Function} done
      */
     shopify._saveAsset = function(key, obj, done) {
-        var contents;
+        var contents,
+            basePath = shopify._getBasePath(),
+            destination = path.join(basePath, key);
 
-        var basePath = shopify._getBasePath();
-        var destination = path.join(basePath, key);
+        shopify.notify('Uploading "' + key + '".');
+        
 
         if (typeof obj.asset.value !== 'undefined') {
             contents = obj.asset.value;
@@ -99,6 +102,7 @@ module.exports = function(grunt) {
             console.log(util.inspect(obj));
         } else {
             grunt.file.write(destination, contents);
+            
             shopify.notify('File "' + key + '" saved to disk.');
         }
 
@@ -113,7 +117,7 @@ module.exports = function(grunt) {
     shopify.notify = function(msg) {
         var config = grunt.config('shopify');
 
-        if (!config.options.disable_growl_notifications) {
+        if (config.options.disable_growl_notifications !== false) {
             growl(msg, { title: 'Grunt Shopify'});
         }
 
@@ -131,9 +135,11 @@ module.exports = function(grunt) {
      * @param {Function} done
      */
     shopify.remove = function(filepath, done) {
-        var api = shopify._getApi();
-        var themeId = shopify._getThemeId();
-        var key = shopify._makeAssetKey(filepath);
+        var api = shopify._getApi(),
+            themeId = shopify._getThemeId(),
+            key = shopify._makeAssetKey(filepath);
+
+        shopify.notify('File "' + key + '" being removed.');
 
         function onDestroy(err) {
             if (!err) {
@@ -165,17 +171,20 @@ module.exports = function(grunt) {
      * @param {Function} done
      */
     shopify.upload = function(filepath, done) {
-        var api = shopify._getApi();
-        var themeId = shopify._getThemeId();
-        var key = shopify._makeAssetKey(filepath);
+        var api = shopify._getApi(), 
+            themeId = shopify._getThemeId(),
+            key = shopify._makeAssetKey(filepath),
+            isBinary = isBinaryFile(filepath),
+            props = {
+                asset: {
+                    key: key
+                }
+            },
+            contents;
 
-        var isBinary = isBinaryFile(filepath);
-        var contents = grunt.file.read(filepath, { encoding: isBinary ? null : 'utf8' });
-        var props = {
-            asset: {
-                key: key
-            }
-        };
+
+        contents = grunt.file.read(filepath, { encoding: isBinary ? null : 'utf8' });
+        shopify.notify('Uploading "'+ key +'"');
 
         if (isBinary) {
             props.asset.attachment = contents.toString('base64');
@@ -233,9 +242,9 @@ module.exports = function(grunt) {
      * @param {Function} done
      */
     shopify.download = function(filepath, done) {
-        var api = shopify._getApi();
-        var themeId = shopify._getThemeId();
-        var key = shopify._makeAssetKey(filepath);
+        var api = shopify._getApi(),
+            themeId = shopify._getThemeId(),
+            key = shopify._makeAssetKey(filepath);
 
         function onRetrieve(err, obj) {
             if (err) {
