@@ -201,8 +201,10 @@ module.exports = function(grunt) {
             props.asset.value = contents.toString();
         }
 
-        function onUpdate(err) {
-            if (!err) {
+        function onUpdate(err, resp) {
+            if (typeof resp.errors !== "undefined") {
+                shopify.notify('Error uploading file ' + resp.errors, true);
+            } else if (!err) {
                 shopify.notify('File "' + key + '" uploaded.');
             }
 
@@ -235,12 +237,14 @@ module.exports = function(grunt) {
 
         async.eachSeries(filepaths, function(filepath, next) {
             shopify.upload(path.join(basePath, filepath), next);
-        }, function(err) {
-          if (!err) {
+        }, function(err, resp) {
+            if (typeof resp.errors !== "undefined") {
+                shopify.notify('Error deploying theme ' + resp.errors, true);
+            } else if (!err) {
               shopify.notify('Theme deploy complete.');
-          }
+            }
 
-          done(err);
+            done(err);
         });
     };
 
@@ -256,8 +260,15 @@ module.exports = function(grunt) {
             key = shopify._makeAssetKey(filepath);
 
         function onRetrieve(err, obj) {
+            if (typeof obj.errors !== "undefined") {
+                shopify.notify('Error downloading asset file ' + obj.errors, true);
+
+                err = true;
+            }
+
             if (err) {
                 done(err);
+
                 return;
             }
 
@@ -286,6 +297,12 @@ module.exports = function(grunt) {
         var themeId = shopify._getThemeId();
 
         function onRetrieve(err, obj) {
+            if (typeof obj.errors !== "undefined") {
+                shopify.notify('Error downloading theme ' + obj.errors, true);
+
+                err = true;
+            }
+
             if (err) {
                 done(err);
                 return;
