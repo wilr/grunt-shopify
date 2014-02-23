@@ -202,7 +202,7 @@ module.exports = function(grunt) {
         }
 
         function onUpdate(err, resp) {
-            if (typeof resp.errors !== "undefined") {
+            if (resp != null && typeof resp.errors !== "undefined") {
                 shopify.notify('Error uploading file ' + resp.errors, true);
             } else if (!err) {
                 shopify.notify('File "' + key + '" uploaded.');
