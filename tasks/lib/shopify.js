@@ -1,10 +1,10 @@
-var fs = require('fs');
-var path = require('path');
-var util = require('util');
-var growl = require('growl');
-var async = require('async');
-var isBinaryFile = require('isbinaryfile');
-var ShopifyApi = require('shopify-api');
+var fs = require('fs'),
+    path = require('path'),
+    util = require('util'),
+    growl = require('growl'),
+    async = require('async'),
+    isBinaryFile = require('isbinaryfile'),
+    ShopifyApi = require('shopify-api');
 
 module.exports = function(grunt) {
     var shopify = {};
