@@ -122,7 +122,11 @@ module.exports = function(grunt) {
         }
 
         if (!config.options.disable_grunt_log) {
-            grunt.log.ok('[grunt-shopify] - ' + msg);
+            if(err) {
+                grunt.log.error('[grunt-shopify] - ' + msg);
+            } else {
+                grunt.log.ok('[grunt-shopify] - ' + msg);
+            }
         }
     };
 
