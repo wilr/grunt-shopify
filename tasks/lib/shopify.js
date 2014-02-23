@@ -71,7 +71,7 @@ module.exports = function(grunt) {
             path = path.substring(path.indexOf(basePath) + basePath.length).replace(/\\/g, '/');
         }
 
-        return path.replace(/^\/+/, '');
+        return encodeURI(path.replace(/^\/+/, ''));
     };
 
     /*
@@ -114,8 +114,13 @@ module.exports = function(grunt) {
      *
      * @param {string} msg
      */
-    shopify.notify = function(msg) {
-        var config = grunt.config('shopify');
+    shopify.notify = function(msg, err) {
+        var config = grunt.config('shopify'),
+            msg = decodeURI(msg);
+
+        if(typeof err === "undefined") {
+            err = false;
+        }
 
         if (config.options.disable_growl_notifications !== false) {
             growl(msg, { title: 'Grunt Shopify'});
