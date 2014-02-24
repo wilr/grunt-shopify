@@ -143,8 +143,8 @@ Type: `String`
 Default value: `''`
 
 The id of the specific theme within your shop that you would like to edit, which
-can be found via the Shopify web interface - navigate to Themes, open the relevant theme,
-and copy the `theme_id` from the url - i.e. `https://storename.myshopify.com/admin/themes/theme_id/settings`.
+can be found via the `themes` task (ie `grunt shopify:themes`).
+
 This key can be omitted entirely if working on the live theme, or left as an empty string.
 
 #### base

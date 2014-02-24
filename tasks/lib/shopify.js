@@ -331,5 +331,36 @@ module.exports = function(grunt) {
         }
     };
 
+    /*
+     * Display the list of available themes.
+     *
+     * @param {Function} done
+     */
+    shopify.themes = function(done) {
+        var api = shopify._getApi();
+
+        api.theme.list(function(err, obj) {
+            if (err) {
+                return done(err);
+            }
+
+            if (!obj.themes) {
+                return done(new Error('Failed to get themes list'));
+            }
+
+            obj.themes.forEach(function(theme) {
+                var str = theme.id + ' - ' + theme.name;
+
+                if (theme.role.length > 0) {
+                    str += ' (' + theme.role + ')';
+                }
+
+                grunt.log.writeln(str);
+            });
+
+            done();
+        });
+    };
+
     return shopify;
 };
