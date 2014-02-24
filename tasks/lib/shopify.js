@@ -413,5 +413,31 @@ module.exports = function(grunt) {
         });
     };
 
+    shopify.watchHandler = function(action, filepath) {
+        function errorHandler(err) {
+            if (err) {
+                shopify.notify(err.message, true);
+            }
+        }
+
+        if (!shopify._isPathInBase(filepath)) {
+            return false;
+        }
+
+        if (action === 'deleted') {
+            shopify.remove(filepath, errorHandler);
+        } else if (grunt.file.isFile(filepath)) {
+            switch (action) {
+                case 'added':
+                case 'changed':
+                case 'renamed':
+                shopify.upload(filepath, errorHandler);
+                break;
+            }
+        } else {
+            shopify.notify('Skipping non-file ' + filepath);
+        }
+    };
+
     return shopify;
 };

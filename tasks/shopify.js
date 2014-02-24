@@ -52,25 +52,5 @@ module.exports = function(grunt) {
     /**
      * Grunt watch event
      */
-    grunt.event.on('watch', function(action, filepath) {
-        function errorHandler(err) {
-            if (err) {
-                grunt.log.error(err);
-            }
-        }
-
-        if (action === 'deleted') {
-            shopify.remove(filepath, errorHandler);
-        } else if (grunt.file.isFile(filepath)) {
-            switch (action) {
-                case 'added':
-                case 'changed':
-                case 'renamed':
-                shopify.upload(filepath, errorHandler);
-                break;
-            }
-        } else {
-            shopify.notify('Skipping non-file ' + filepath);
-        }
-    });
+    grunt.event.on('watch', shopify.watchHandler);
 };
