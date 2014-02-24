@@ -79,11 +79,11 @@ module.exports = function(grunt) {
      */
     shopify._isValidPath = function(filepath) {
         if (!shopify._isPathInBase(filepath)) {
-            grunt.log.warn('[grunt-shopify] - File "' + filepath + '" not in base path');
+            shopify.notify('File "' + filepath + '" not in base path');
             return false;
         } else if (!shopify._isWhitelistedPath(filepath)) {
             var relative = shopify._makePathRelative(filepath);
-            grunt.log.warn('[grunt-shopify] - File "' + relative + '" not allowed by Shopify whitelist');
+            shopify.notify('File "' + relative + '" not allowed by Shopify whitelist');
             return false;
         }
 
@@ -421,7 +421,7 @@ module.exports = function(grunt) {
         }
 
         if (!shopify._isPathInBase(filepath)) {
-            return false;
+            return;
         }
 
         if (action === 'deleted') {
