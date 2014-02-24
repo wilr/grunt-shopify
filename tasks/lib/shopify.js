@@ -1,4 +1,5 @@
-var path = require('path'),
+var fs = require('fs'),
+    path = require('path'),
     util = require('util'),
     growl = require('growl'),
     async = require('async'),
@@ -8,6 +9,7 @@ var path = require('path'),
 module.exports = function(grunt) {
     var shopify = {};
     shopify._api = false;
+    shopify._basePath = false;
 
     /*
      * Get the Shopify API instance.
@@ -36,8 +38,14 @@ module.exports = function(grunt) {
      * @return {string}
      */
     shopify._getBasePath = function() {
-        var config = grunt.config('shopify');
-        return ('base' in config.options) ? config.options.base : '';
+        if (!shopify._basePath) {
+            var config = grunt.config('shopify'),
+                base = ('base' in config.options) ? config.options.base : false;
+
+            shopify._basePath = (base.length > 0) ? fs.realpathSync(base) : process.cwd();
+        }
+
+        return shopify._basePath;
     };
 
     /*
@@ -48,6 +56,47 @@ module.exports = function(grunt) {
     shopify._getThemeId = function() {
         var config = grunt.config('shopify');
         return ('theme' in config.options) ? config.options.theme : false;
+    };
+
+    /*
+     * Determine if path is within our base path.
+     *
+     * @return {Boolean}
+     */
+    shopify._isPathInBase = function(filepath) {
+        var basePath = shopify._getBasePath();
+
+        try {
+            return grunt.file.doesPathContain(basePath, fs.realpathSync(filepath));
+        } catch(e) {
+            return false;
+        }
+    };
+
+    /*
+     * Determine if path is valid to use.
+     *
+     * @return {Boolean}
+     */
+    shopify._isValidPath = function(filepath) {
+        if (!shopify._isPathInBase(filepath)) {
+            return false;
+        } else if (!shopify._isWhitelistedPath(filepath)) {
+            return false;
+        }
+
+        return true;
+    };
+
+    /*
+     * Determine if path is allowed by Shopify.
+     *
+     * @return {Boolean}
+     */
+    shopify._isWhitelistedPath = function(filepath) {
+        filepath = shopify._makePathRelative(filepath);
+
+        return filepath.match(/^(assets|config|layout|snippets|templates)\//i);
     };
 
     /*
@@ -62,15 +111,23 @@ module.exports = function(grunt) {
      * @return {string}
      */
     shopify._makeAssetKey = function(filepath) {
+        filepath = shopify._makePathRelative(filepath);
+
+        return encodeURI(filepath);
+    };
+
+    /**
+     * Make a path relative to base path.
+     *
+     * @param {string} filepath
+     * @return {string}
+     */
+    shopify._makePathRelative = function(filepath) {
         var basePath = shopify._getBasePath();
 
-        filepath = filepath.replace(/\\/g, '/');
+        filepath = path.relative(basePath, filepath);
 
-        if (basePath.length > 0) {
-            filepath = filepath.substring(filepath.indexOf(basePath) + basePath.length).replace(/\\/g, '/');
-        }
-
-        return encodeURI(filepath.replace(/^\/+/, ''));
+        return filepath.replace(/\\/g, '/');
     };
 
     /*
@@ -138,6 +195,10 @@ module.exports = function(grunt) {
      * @param {Function} done
      */
     shopify.remove = function(filepath, done) {
+        if (!shopify._isValidPath(filepath)) {
+            return done();
+        }
+
         var api = shopify._getApi(),
             themeId = shopify._getThemeId(),
             key = shopify._makeAssetKey(filepath);
@@ -174,6 +235,10 @@ module.exports = function(grunt) {
      * @param {Function} done
      */
     shopify.upload = function(filepath, done) {
+        if (!shopify._isValidPath(filepath)) {
+            return done();
+        }
+
         var api = shopify._getApi(),
             themeId = shopify._getThemeId(),
             key = shopify._makeAssetKey(filepath),
