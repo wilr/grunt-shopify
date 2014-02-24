@@ -62,12 +62,17 @@ module.exports = function(grunt) {
      * @return {string}
      */
     shopify._makeAssetKey = function(filepath) {
-        var basePath = shopify._getBasePath();
+        var basePath = shopify._getBasePath(),
+            baseIndex = -1;
 
         filepath = filepath.replace(/\\/g, '/');
 
         if (basePath.length > 0) {
-            filepath = filepath.substring(filepath.indexOf(basePath) + basePath.length).replace(/\\/g, '/');
+            baseIndex = filepath.indexOf(basePath);
+
+            if (baseIndex !== -1) {
+                filepath = filepath.substring(baseIndex + basePath.length).replace(/\\/g, '/');
+            }
         }
 
         return encodeURI(filepath.replace(/^\/+/, ''));
@@ -85,7 +90,7 @@ module.exports = function(grunt) {
             basePath = shopify._getBasePath(),
             destination = path.join(basePath, key);
 
-        shopify.notify('Uploading "' + key + '".');
+        shopify.notify('Downloading "' + key + '".');
 
         if (typeof obj.asset.value !== 'undefined') {
             contents = obj.asset.value;
