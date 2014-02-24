@@ -1,5 +1,4 @@
-var fs = require('fs'),
-    path = require('path'),
+var path = require('path'),
     util = require('util'),
     growl = require('growl'),
     async = require('async'),
@@ -42,7 +41,7 @@ module.exports = function(grunt) {
             var config = grunt.config('shopify'),
                 base = ('base' in config.options) ? config.options.base : false;
 
-            shopify._basePath = (base.length > 0) ? fs.realpathSync(base) : process.cwd();
+            shopify._basePath = (base.length > 0) ? path.resolve(base) : process.cwd();
         }
 
         return shopify._basePath;
@@ -67,7 +66,7 @@ module.exports = function(grunt) {
         var basePath = shopify._getBasePath();
 
         try {
-            return grunt.file.doesPathContain(basePath, fs.realpathSync(filepath));
+            return grunt.file.doesPathContain(basePath, path.resolve(filepath));
         } catch(e) {
             return false;
         }
@@ -80,8 +79,11 @@ module.exports = function(grunt) {
      */
     shopify._isValidPath = function(filepath) {
         if (!shopify._isPathInBase(filepath)) {
+            grunt.log.warn('[grunt-shopify] - File "' + filepath + '" not in base path');
             return false;
         } else if (!shopify._isWhitelistedPath(filepath)) {
+            var relative = shopify._makePathRelative(filepath);
+            grunt.log.warn('[grunt-shopify] - File "' + relative + '" not allowed by Shopify whitelist');
             return false;
         }
 
