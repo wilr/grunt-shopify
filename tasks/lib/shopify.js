@@ -1,5 +1,4 @@
-var fs = require('fs'),
-    path = require('path'),
+var path = require('path'),
     util = require('util'),
     growl = require('growl'),
     async = require('async'),
@@ -62,16 +61,16 @@ module.exports = function(grunt) {
      * @param {string}
      * @return {string}
      */
-    shopify._makeAssetKey = function(path) {
+    shopify._makeAssetKey = function(filepath) {
         var basePath = shopify._getBasePath();
-        
-        path = path.replace(/\\/g, '/');
+
+        filepath = filepath.replace(/\\/g, '/');
 
         if (basePath.length > 0) {
-            path = path.substring(path.indexOf(basePath) + basePath.length).replace(/\\/g, '/');
+            filepath = filepath.substring(filepath.indexOf(basePath) + basePath.length).replace(/\\/g, '/');
         }
 
-        return encodeURI(path.replace(/^\/+/, ''));
+        return encodeURI(filepath.replace(/^\/+/, ''));
     };
 
     /*
@@ -87,22 +86,19 @@ module.exports = function(grunt) {
             destination = path.join(basePath, key);
 
         shopify.notify('Uploading "' + key + '".');
-        
 
         if (typeof obj.asset.value !== 'undefined') {
             contents = obj.asset.value;
         } else if (typeof obj.asset.attachment !== 'undefined') {
             contents = new Buffer(obj.asset.attachment, 'base64');
         } else {
-            done(new Error('Parsed object is not complete'));
-            return;
+            return done(new Error('Parsed object is not complete'));
         }
 
         if (grunt.option('no-write')) {
             console.log(util.inspect(obj));
         } else {
             grunt.file.write(destination, contents);
-            
             shopify.notify('File "' + key + '" saved to disk.');
         }
 
@@ -115,19 +111,17 @@ module.exports = function(grunt) {
      * @param {string} msg
      */
     shopify.notify = function(msg, err) {
-        var config = grunt.config('shopify'),
-            msg = decodeURI(msg);
+        var config = grunt.config('shopify');
 
-        if(typeof err === "undefined") {
-            err = false;
-        }
+        msg = decodeURI(msg);
+        err = err || false;
 
         if (config.options.disable_growl_notifications !== false) {
             growl(msg, { title: 'Grunt Shopify'});
         }
 
         if (!config.options.disable_grunt_log) {
-            if(err) {
+            if (err) {
                 grunt.log.error('[grunt-shopify] - ' + msg);
             } else {
                 grunt.log.ok('[grunt-shopify] - ' + msg);
@@ -180,7 +174,7 @@ module.exports = function(grunt) {
      * @param {Function} done
      */
     shopify.upload = function(filepath, done) {
-        var api = shopify._getApi(), 
+        var api = shopify._getApi(),
             themeId = shopify._getThemeId(),
             key = shopify._makeAssetKey(filepath),
             isBinary = isBinaryFile(filepath),
@@ -190,7 +184,6 @@ module.exports = function(grunt) {
                 }
             },
             contents;
-
 
         contents = grunt.file.read(filepath, { encoding: isBinary ? null : 'utf8' });
         shopify.notify('Uploading "'+ key +'"');
@@ -202,8 +195,8 @@ module.exports = function(grunt) {
         }
 
         function onUpdate(err, resp) {
-            if (resp != null && typeof resp.errors !== "undefined") {
-                shopify.notify('Error uploading file ' + resp.errors, true);
+            if (err && err.type === 'ShopifyInvalidRequestError') {
+                shopify.notify('Error uploading file ' + err.detail, true);
             } else if (!err) {
                 shopify.notify('File "' + key + '" uploaded.');
             }
@@ -238,10 +231,10 @@ module.exports = function(grunt) {
         async.eachSeries(filepaths, function(filepath, next) {
             shopify.upload(path.join(basePath, filepath), next);
         }, function(err, resp) {
-            if (typeof resp.errors !== "undefined") {
-                shopify.notify('Error deploying theme ' + resp.errors, true);
+            if (err && err.type === 'ShopifyInvalidRequestError') {
+                shopify.notify('Error deploying theme ' + err.detail, true);
             } else if (!err) {
-              shopify.notify('Theme deploy complete.');
+                shopify.notify('Theme deploy complete.');
             }
 
             done(err);
@@ -260,21 +253,16 @@ module.exports = function(grunt) {
             key = shopify._makeAssetKey(filepath);
 
         function onRetrieve(err, obj) {
-            if (typeof obj.errors !== "undefined") {
-                shopify.notify('Error downloading asset file ' + obj.errors, true);
-
-                err = true;
-            }
-
             if (err) {
-                done(err);
+                if (err.type === 'ShopifyInvalidRequestError') {
+                    shopify.notify('Error downloading asset file ' + err.detail, true);
+                }
 
-                return;
+                return done(err);
             }
 
             if (!obj.asset) {
-                done(new Error('Failed to get asset data'));
-                return;
+                return done(new Error('Failed to get asset data'));
             }
 
             shopify._saveAsset(key, obj, done);
@@ -297,20 +285,16 @@ module.exports = function(grunt) {
         var themeId = shopify._getThemeId();
 
         function onRetrieve(err, obj) {
-            if (typeof obj.errors !== "undefined") {
-                shopify.notify('Error downloading theme ' + obj.errors, true);
-
-                err = true;
-            }
-
             if (err) {
-                done(err);
-                return;
+                if (err.type === 'ShopifyInvalidRequestError') {
+                    shopify.notify('Error downloading theme ' + err.detail, true);
+                }
+
+                return done(err);
             }
 
             if (!obj.assets) {
-                done(new Error('Failed to get theme assets list'));
-                return;
+                return done(new Error('Failed to get theme assets list'));
             }
 
             async.eachSeries(obj.assets, function(asset, next) {
