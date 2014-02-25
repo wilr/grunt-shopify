@@ -263,7 +263,7 @@ module.exports = function(grunt) {
 
         function onUpdate(err, resp) {
             if (err && err.type === 'ShopifyInvalidRequestError') {
-                shopify.notify('Error uploading file ' + err.detail, true);
+                shopify.notify('Error uploading file ' + JSON.stringify(err.detail), true);
             } else if (!err) {
                 shopify.notify('File "' + key + '" uploaded.');
             }
@@ -299,7 +299,7 @@ module.exports = function(grunt) {
             shopify.upload(path.join(basePath, filepath), next);
         }, function(err, resp) {
             if (err && err.type === 'ShopifyInvalidRequestError') {
-                shopify.notify('Error deploying theme ' + err.detail, true);
+                shopify.notify('Error deploying theme ' + JSON.stringify(err.detail), true);
             } else if (!err) {
                 shopify.notify('Theme deploy complete.');
             }
@@ -322,7 +322,7 @@ module.exports = function(grunt) {
         function onRetrieve(err, obj) {
             if (err) {
                 if (err.type === 'ShopifyInvalidRequestError') {
-                    shopify.notify('Error downloading asset file ' + err.detail, true);
+                    shopify.notify('Error downloading asset file ' + JSON.stringify(err.detail), true);
                 }
 
                 return done(err);
@@ -354,7 +354,7 @@ module.exports = function(grunt) {
         function onRetrieve(err, obj) {
             if (err) {
                 if (err.type === 'ShopifyInvalidRequestError') {
-                    shopify.notify('Error downloading theme ' + err.detail, true);
+                    shopify.notify('Error downloading theme ' + JSON.stringify(err.detail), true);
                 }
 
                 return done(err);
