@@ -144,7 +144,7 @@ module.exports = function(grunt) {
             basePath = shopify._getBasePath(),
             destination = path.join(basePath, key);
 
-        shopify.notify('Uploading "' + key + '".');
+        shopify.notify('Downloading "' + key + '".');
 
         if (typeof obj.asset.value !== 'undefined') {
             contents = obj.asset.value;
