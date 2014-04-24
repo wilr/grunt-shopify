@@ -78,6 +78,24 @@ module.exports = function(grunt) {
         shopify.deploy(done, src);
     });
 
+    grunt.registerMultiTask('shopifydelete', 'Delete files from Shopify, the grunt way', function() {
+        var done = this.async(), 
+            src = null;
+
+        this.files.forEach(function(f) {
+          src = f.src.filter(function(filepath) {
+            return true; 
+          });
+        });
+
+        if (src && src.length === 0) {
+          grunt.log.warn('No files specified for removal.');
+          return;
+        }
+
+        shopify.massRemove(done, src);
+    });
+
     /**
      * Grunt watch event
      */
