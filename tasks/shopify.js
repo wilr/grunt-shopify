@@ -7,6 +7,8 @@
  */
 'use strict';
 
+var path = require('path');
+
 module.exports = function(grunt) {
     var shopify = require('./lib/shopify')(grunt);
 
@@ -47,6 +49,53 @@ module.exports = function(grunt) {
     grunt.registerTask('shopify:delete', 'Removes a theme file from Shopify', function(p) {
         var done = this.async();
         shopify.remove(p, done);
+    });
+
+    grunt.registerMultiTask('shopifyupload', 'Uploads files to Shopify, the grunt way', function() {
+        var done = this.async(), 
+            src = null;
+
+        this.files.forEach(function(f) {
+          src = f.src.filter(function(filepath) {
+            var realpath = path.join(process.cwd(), grunt.config('shopify.options.base'), filepath);
+
+            if (!grunt.file.exists(realpath)) {
+              grunt.log.warn('Source file ' + path.join(grunt.config('shopify.options.base'), filepath) + ' not found.');
+              return false;
+            } else if(grunt.file.isFile(realpath)) {
+              return true;
+            } else {
+              return false;
+            }
+          });
+        });
+
+        if (src && src.length === 0) {
+          grunt.log.warn('No files uploaded because no source files could be found.');
+          done();
+          return;
+        }
+
+        shopify.deploy(done, src);
+    });
+
+    grunt.registerMultiTask('shopifydelete', 'Delete files from Shopify, the grunt way', function() {
+        var done = this.async(), 
+            src = null;
+
+        this.files.forEach(function(f) {
+          src = f.src.filter(function(filepath) {
+            return true; 
+          });
+        });
+
+        if (src && src.length === 0) {
+          grunt.log.warn('No files specified for removal.');
+          done();
+          return;
+        }
+
+        shopify.massRemove(done, src);
     });
 
     /**
