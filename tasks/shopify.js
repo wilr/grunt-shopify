@@ -72,6 +72,7 @@ module.exports = function(grunt) {
 
         if (src && src.length === 0) {
           grunt.log.warn('No files uploaded because no source files could be found.');
+          done();
           return;
         }
 
@@ -90,6 +91,7 @@ module.exports = function(grunt) {
 
         if (src && src.length === 0) {
           grunt.log.warn('No files specified for removal.');
+          done();
           return;
         }
 
