@@ -282,12 +282,13 @@ module.exports = function(grunt) {
      * Deploy an entire theme to Shopify.
      *
      * @param {Function} done
+     * @param files
      */
-    shopify.deploy = function(done) {
+    shopify.deploy = function(done, files) {
         var c = grunt.config('shopify');
 
         var basePath = shopify._getBasePath();
-        var filepaths = grunt.file.expand({ cwd: basePath }, [
+        var filepaths = files ? files : grunt.file.expand({ cwd: basePath }, [
             'assets/*.*',
             'config/*.*',
             'layout/*.*',
