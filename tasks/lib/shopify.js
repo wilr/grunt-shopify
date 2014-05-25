@@ -144,7 +144,7 @@ module.exports = function(grunt) {
             basePath = shopify._getBasePath(),
             destination = path.join(basePath, key);
 
-        shopify.notify('Uploading "' + key + '".');
+        shopify.notify('Downloading "' + key + '".');
 
         if (typeof obj.asset.value !== 'undefined') {
             contents = obj.asset.value;
@@ -349,7 +349,8 @@ module.exports = function(grunt) {
      */
     shopify.downloadTheme = function(done) {
         var api = shopify._getApi();
-        var themeId = shopify._getThemeId();
+        var themeId = shopify._getThemeId(),
+            basePath = shopify._getBasePath();
 
         function onRetrieve(err, obj) {
             if (err) {
@@ -365,7 +366,7 @@ module.exports = function(grunt) {
             }
 
             async.eachSeries(obj.assets, function(asset, next) {
-                shopify.download(asset.key, next);
+                shopify.download(path.join(basePath, asset.key), next);
             }, function(err) {
                 if (!err) {
                     shopify.notify('Theme download complete.');
