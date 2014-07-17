@@ -292,7 +292,8 @@ module.exports = function(grunt) {
             'config/*.*',
             'layout/*.*',
             'snippets/*.*',
-            'templates/*.*'
+            'templates/*.*',
+            'templates/customers/*.*'
         ]);
 
         async.eachSeries(filepaths, function(filepath, next) {
