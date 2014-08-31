@@ -98,7 +98,7 @@ module.exports = function(grunt) {
     shopify._isWhitelistedPath = function(filepath) {
         filepath = shopify._makePathRelative(filepath);
 
-        return filepath.match(/^(assets|config|layout|snippets|templates)\//i);
+        return filepath.match(/^(assets|config|layout|snippets|templates|locales)\//i);
     };
 
     /*
@@ -231,6 +231,7 @@ module.exports = function(grunt) {
      *      - Liquid snippets => "snippets/"
      *      - Theme settings => "config/"
      *      - General assets => "assets/"
+     *      - Language files => "locales/"
      *
      * Some requests may fail if those folders are ignored
      * @param {string} filepath
@@ -291,6 +292,7 @@ module.exports = function(grunt) {
             'assets/*.*',
             'config/*.*',
             'layout/*.*',
+            'locales/*.*',
             'snippets/*.*',
             'templates/*.*',
             'templates/customers/*.*'
