@@ -1,7 +1,7 @@
 {
   "name": "grunt-shopify",
   "description": "Grunt plug-in for publishing Shopify theme templates and assets.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "homepage": "https://github.com/wilr/grunt-shopify",
   "author": {
     "name": "Will Rossiter",
@@ -15,7 +15,8 @@
   "bugs": {
     "url": "https://github.com/wilr/grunt-shopify/issues"
   },
-  "licenses": [{
+  "licenses": [
+    {
       "type": "BSD-3-Clause",
       "url": "https://github.com/wilr/grunt-shopify/blob/master/LICENSE"
     }
@@ -33,6 +34,10 @@
     "grunt-contrib-jshint": "~0.1.1"
   },
   "keywords": [
-    "gruntplugin", "shopify"
-  ]
+    "gruntplugin",
+    "shopify"
+  ],
+  "devDependencies": {
+    "grunt-release": "~0.7.0"
+  }
 }
