@@ -37,10 +37,11 @@ module.exports = function(grunt) {
 
     grunt.registerTask('shopify:upload', 'Uploads a single theme file to Shopify, or the entire theme if no file is specified', function(p) {
         var done = this.async();
+        var noJson = grunt.option('no-json') || false;
         if (p) {
           shopify.upload(p, done);
         } else {
-          shopify.deploy(done);
+          shopify.deploy(done, noJson);
         }
     });
 

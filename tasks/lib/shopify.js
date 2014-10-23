@@ -284,7 +284,7 @@ module.exports = function(grunt) {
      *
      * @param {Function} done
      */
-    shopify.deploy = function(done) {
+    shopify.deploy = function(done, noJson) {
         var c = grunt.config('shopify');
 
         var basePath = shopify._getBasePath();
@@ -297,6 +297,11 @@ module.exports = function(grunt) {
             'templates/*.*',
             'templates/customers/*.*'
         ]);
+
+        if (noJson) {
+            var index = filepaths.indexOf('settings_data.json');
+            filepaths.splice(index, 1);
+        }
 
         async.eachSeries(filepaths, function(filepath, next) {
             shopify.upload(path.join(basePath, filepath), next);
