@@ -111,6 +111,27 @@ grunt.initConfig({
 });
 ```
 
+### Manually Uploading Files
+
+`grunt shopify:upload:<filename>` uploads single files to your shop. If no
+filename is provided the entire theme will be deployed.
+
+```shell
+# upload a single file
+grunt shopify:upload:page.liquid
+
+# deploy the whole theme
+grunt shopify:upload
+```
+
+If you want to deploy your theme with the exception of the `settings_data.json`
+file, use the `--no-json` option:
+
+```shell
+# deploy without settings_data.json
+grunt shopify:upload --no-json
+```
+
 ### Options
 
 #### api_key
