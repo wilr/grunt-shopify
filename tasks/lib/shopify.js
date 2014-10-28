@@ -102,6 +102,17 @@ module.exports = function(grunt) {
     };
 
     /*
+     * Determine if path is being watched.
+     *
+     * @return {Boolean}
+     */
+    shopify._isWatchedPath = function(filepath) {
+        watchedFolders = grunt.config('watch').shopify.files;
+
+        return grunt.file.isMatch(watchedFolders,filepath);
+    };
+
+    /*
      * Convert a file path on the local file system to an asset path in shopify
      * as you may run grunt at a higher directory locally.
      *
@@ -429,7 +440,7 @@ module.exports = function(grunt) {
             }
         }
 
-        if (!shopify._isPathInBase(filepath)) {
+        if (!shopify._isWatchedPath(filepath)) {
             return;
         }
 
