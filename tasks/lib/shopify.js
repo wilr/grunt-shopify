@@ -11,6 +11,42 @@ module.exports = function(grunt) {
     shopify._basePath = false;
 
     /*
+     * Queued task worker.
+     *
+     * Receive task object and process it.
+     *
+     * @param {Object} task
+     * @param {Function} callback
+     * @see {@link https://github.com/caolan/async#queue}
+     */
+    shopify._queueWorker = function(task, callback) {
+        var config = grunt.config('shopify');
+        var rate_limit = config.options.rate_limit_delay ?
+                config.options.rate_limit_delay :
+                500 // default val
+
+        function postUploadCallback() {
+            task.done();
+            // wait before concluding the task
+            setTimeout(callback, rate_limit);
+        }
+
+        switch (task.action) {
+            case 'upload':
+                shopify.upload(task.filepath, postUploadCallback);
+                break;
+            case 'remove':
+                shopify.remove(task.filepath, postUploadCallback);
+                break;
+            default:
+                shopify.notify('unrecognized worker task action: ' + task.action, true);
+                break;
+        }
+    }
+
+    shopify.queue = async.queue(shopify._queueWorker, 1);
+
+    /*
      * Get the Shopify API instance.
      *
      * @return {ShopifyApi}
@@ -445,13 +481,21 @@ module.exports = function(grunt) {
         }
 
         if (action === 'deleted') {
-            shopify.remove(filepath, errorHandler);
+            shopify.queue.push({
+                action: 'remove',
+                filepath: filepath,
+                done: errorHandler
+            });
         } else if (grunt.file.isFile(filepath)) {
             switch (action) {
                 case 'added':
                 case 'changed':
                 case 'renamed':
-                shopify.upload(filepath, errorHandler);
+                shopify.queue.push({
+                    action: 'upload',
+                    filepath: filepath,
+                    done: errorHandler
+                });
                 break;
             }
         } else {
