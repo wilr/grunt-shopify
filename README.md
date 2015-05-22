@@ -194,6 +194,14 @@ On top of using Growl notifications for application status, error messages are
 output in via grunt log. Turning off the grunt log will keep your terminal clear
 in 
 
+#### rate_limit_delay
+
+Type: `Number`
+Default value: `500`
+
+Interval in milliseconds between the API calls when running the watch task.
+According to the [Shopify docs](https://docs.shopify.com/api/introduction/api-call-limit) the API call limit is set to 2 calls per second, so a sensitive default value like 500ms ensure that no API error will occurs.
+
 ## Contributing
 
 In lieu of a formal styleguide, take care to maintain the existing coding style. 
