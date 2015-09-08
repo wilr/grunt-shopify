@@ -2,6 +2,7 @@ var path = require('path'),
     util = require('util'),
     growl = require('growl'),
     async = require('async'),
+    fs = require('fs'),
     isBinaryFile = require('isbinaryfile'),
     ShopifyApi = require('shopify-api');
 
@@ -467,6 +468,82 @@ module.exports = function(grunt) {
 
             done();
         });
+    };
+
+    /*
+     * Sync local files to Shopify based on last modified date
+     *
+     * @param {Function} done
+     */
+    shopify.sync = function (done) {
+        var api = shopify._getApi();
+        var themeId = shopify._getThemeId(),
+            basePath = shopify._getBasePath();
+
+        var fileMap = {};
+
+        function onRetrieve(err, obj) {
+            if (err) {
+                if (err.type === 'ShopifyInvalidRequestError') {
+                    shopify.notify('Error downloading theme ' + JSON.stringify(err.detail), true);
+                }
+
+                return done(err);
+            }
+
+            if (!obj.assets) {
+                return done(new Error('Failed to get theme assets list'));
+            }
+
+            for (var i = 0; i < obj.assets.length; i++) {
+                var file = obj.assets[i];
+                fileMap[file.key] = {
+                    'updated_at': file.updated_at,
+                    'size': file.size
+                };
+            }
+
+            var filepaths = grunt.file.expand({cwd: basePath}, [
+                'assets/*.*',
+                'config/*.*',
+                'layout/*.*',
+                'locales/*.*',
+                'snippets/*.*',
+                'templates/*.*',
+                'templates/customers/*.*'
+            ]);
+
+            var filesToUpdate = [];
+
+            for (var i = 0; i < filepaths.length; i++) {
+                var absPath = filepaths[i];
+                var filePath = path.join(basePath, absPath);
+                var date = fs.lstatSync(filePath).mtime;
+                if (!fileMap[absPath]) {
+                    filesToUpdate.push(filePath);
+                    continue;
+                }
+                if (new Date(fileMap[absPath].updated_at).getTime() < date.getTime()) {
+                    filesToUpdate.push(filePath);
+                }
+            }
+            async.eachSeries(filesToUpdate, function (filepath, next) {
+                shopify.upload(filepath, next);
+            }, function (err, resp) {
+                if (err && err.type === 'ShopifyInvalidRequestError') {
+                    shopify.notify('Error syncing theme ' + JSON.stringify(err.detail), true);
+                } else if (!err) {
+                    shopify.notify('Theme sync complete.');
+                }
+                done(err);
+            });
+        }
+
+        if (themeId) {
+            api.asset.list(themeId, onRetrieve);
+        } else {
+            api.assetLegacy.list(onRetrieve);
+        }
     };
 
     shopify.watchHandler = function(action, filepath) {
