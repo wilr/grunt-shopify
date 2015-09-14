@@ -52,6 +52,11 @@ module.exports = function(grunt) {
         shopify.remove(p, done);
     });
 
+    grunt.registerTask('shopify:sync', 'Sync remote and local files with Shopify', function() {
+        var done = this.async();
+        shopify.sync(done);
+    });
+
     /**
      * Grunt watch event
      */
