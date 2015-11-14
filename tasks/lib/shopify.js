@@ -347,7 +347,7 @@ module.exports = function(grunt) {
         ]);
 
         if (options.noJson) {
-            var index = filepaths.indexOf('settings_data.json');
+            var index = filepaths.indexOf('config/settings_data.json');
             filepaths.splice(index, 1);
         }
 
