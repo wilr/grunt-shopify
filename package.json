@@ -1,7 +1,7 @@
 {
   "name": "grunt-shopify",
   "description": "Grunt plug-in for publishing Shopify theme templates and assets.",
-  "version": "0.6.5",
+  "version": "0.6.6",
   "homepage": "https://github.com/wilr/grunt-shopify",
   "author": {
     "name": "Will Rossiter",
