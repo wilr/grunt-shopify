@@ -405,8 +405,12 @@ module.exports = function(grunt) {
      */
     shopify.downloadTheme = function(done) {
         var api = shopify._getApi();
+        var config = grunt.config('shopify');
         var themeId = shopify._getThemeId(),
             basePath = shopify._getBasePath();
+        var rate_limit = config.options.rate_limit_delay ?
+            config.options.rate_limit_delay :
+            500 // default val
 
         function onRetrieve(err, obj) {
             if (err) {
@@ -422,7 +426,9 @@ module.exports = function(grunt) {
             }
 
             async.eachSeries(obj.assets, function(asset, next) {
-                shopify.download(path.join(basePath, asset.key), next);
+                setTimeout(function() {
+                    shopify.download(path.join(basePath, asset.key), next);
+                }, rate_limit);
             }, function(err) {
                 if (!err) {
                     shopify.notify('Theme download complete.');
