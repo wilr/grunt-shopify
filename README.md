@@ -132,6 +132,14 @@ file, use the `--no-json` option:
 grunt shopify:upload --no-json
 ```
 
+### Downloading the latest
+
+To download the latest files (in case of changes via the shopify editor) run
+
+```shell
+grunt shopify:download
+```
+
 ### Options
 
 #### api_key
