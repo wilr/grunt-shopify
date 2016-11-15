@@ -135,7 +135,7 @@ module.exports = function(grunt) {
     shopify._isWhitelistedPath = function(filepath) {
         filepath = shopify._makePathRelative(filepath);
 
-        return filepath.match(/^(assets|config|layout|snippets|templates|locales)\//i);
+        return filepath.match(/^(assets|config|layout|snippets|sections|templates|locales)\//i);
     };
 
     /*
