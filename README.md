@@ -2,6 +2,9 @@
 
 > Grunt plug-in for publishing Shopify theme assets
 
+[![dependencies](http://img.shields.io/david/wilr/grunt-shopify.svg?style=flat-square)](https://david-dm.org/wilr/grunt-shopify)
+[![npm version](http://img.shields.io/npm/v/grunt-shopify.svg?style=flat-square)](https://npmjs.org/package/grunt-shopify)
+
 This plug-in handles publishing file changes, uploading new files and removing
 deleted files from your local filesystem to a Shopify account in real time.
 

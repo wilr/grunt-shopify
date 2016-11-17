@@ -40,7 +40,7 @@
   "dependencies": {
     "async": "~0.2.9",
     "isbinaryfile": "~2.0.0",
-    "shopify-api": "~0.2.2"
+    "shopify-api": "~0.2.3",
   },
   "devDependencies": {
     "grunt-release": "~0.7.0"
