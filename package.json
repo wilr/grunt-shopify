@@ -28,7 +28,7 @@
   "peerDependencies": {
     "grunt-contrib-watch": ">=0.4.4",
     "grunt": ">=0.4.0",
-    "growl": "~1.7"
+    "growl": "~1.9.2"
   },
   "devDependancies": {
     "grunt-contrib-jshint": "~0.1.1"
@@ -38,11 +38,11 @@
     "shopify"
   ],
   "dependencies": {
-    "async": "~0.2.9",
-    "isbinaryfile": "~2.0.0",
-    "shopify-api": "~0.2.3",
+    "async": "2.1.2",
+    "isbinaryfile": "3.0.1",
+    "shopify-api": "~0.2.3"
   },
   "devDependencies": {
-    "grunt-release": "~0.7.0"
+    "grunt-release": "~0.14.0"
   }
 }
