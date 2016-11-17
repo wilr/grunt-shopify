@@ -322,7 +322,7 @@ module.exports = function(grunt) {
         var api = shopify._getApi(),
             themeId = shopify._getThemeId(),
             key = shopify._makeAssetKey(filepath),
-            isBinary = isBinaryFile(filepath),
+            isBinary = isBinaryFile.sync(filepath),
             props = {
                 asset: {
                     key: key
