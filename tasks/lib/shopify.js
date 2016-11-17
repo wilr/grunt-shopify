@@ -9,6 +9,7 @@ var path = require('path'),
 module.exports = function(grunt) {
     var shopify = {};
     shopify._api = false;
+    shopify._uploadPatterns = false;
     shopify._basePath = false;
 
     /*
@@ -67,6 +68,34 @@ module.exports = function(grunt) {
 
         return shopify._api;
     };
+
+    /*
+     * Get the file patterns
+     *
+     * @return {array}
+     */
+    shopify._getUploadPatterns = function() {
+        if (!shopify._uploadPatterns) {
+            var config = grunt.config('shopify');
+
+            var defaultConfig = [
+                'assets/*.*',
+                'config/*.*',
+                'layout/*.*',
+                'locales/*.*',
+                'snippets/*.*',
+                'templates/*.*',
+                'templates/customers/*.*'
+            ];
+
+            var options = ('upload_patterns' in config.options) ? config.options.upload_patterns : defaultConfig;
+
+            shopify._uploadPatterns = options;
+        }
+
+        return shopify._uploadPatterns;
+    }
+
 
     /*
      * Get the base path.
@@ -336,15 +365,7 @@ module.exports = function(grunt) {
         var c = grunt.config('shopify');
 
         var basePath = shopify._getBasePath();
-        var filepaths = grunt.file.expand({ cwd: basePath }, [
-            'assets/*.*',
-            'config/*.*',
-            'layout/*.*',
-            'locales/*.*',
-            'snippets/*.*',
-            'templates/*.*',
-            'templates/customers/*.*'
-        ]);
+        var filepaths = grunt.file.expand({ cwd: basePath }, shopify._getUploadPatterns());
 
         if (options.noJson) {
             var index = filepaths.indexOf('config/settings_data.json');
@@ -509,16 +530,7 @@ module.exports = function(grunt) {
                 };
             }
 
-            var filepaths = grunt.file.expand({cwd: basePath}, [
-                'assets/*.*',
-                'config/*.*',
-                'layout/*.*',
-                'locales/*.*',
-                'snippets/*.*',
-                'templates/*.*',
-                'templates/customers/*.*'
-            ]);
-
+            var filepaths = grunt.file.expand({cwd: basePath}, shopify._getUploadPatterns());
             var filesToUpdate = [];
 
             for (var i = 0; i < filepaths.length; i++) {

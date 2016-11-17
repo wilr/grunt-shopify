@@ -184,6 +184,14 @@ Default value: `''`
 If you've got your shopify files stored in a subdirectory locally (e.g in a 
 shop/ folder), base should the name of the folder with the trailing slash (i.e shop/).
 
+#### upload_patterns
+
+Type: `array`
+Default value: `['assets/*.*','config/*.*','layout/*.*','locales/*.*','snippets/*.*','templates/*.*','templates/customers/*.*']`
+
+Defines the [globbing patterns](http://gruntjs.com/api/grunt.file#globbing-patterns) to filter and select the files to 
+be uploaded. 
+
 #### disable_growl_notifications
 
 Type: `Boolean`
