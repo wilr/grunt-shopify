@@ -39,7 +39,8 @@ module.exports = function(grunt) {
         var done = this.async();
         var options = {
             noJson: grunt.option('no-json')
-        }
+        };
+        
         if (p) {
           shopify.upload(p, done);
         } else {
