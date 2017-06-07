@@ -83,7 +83,7 @@ module.exports = function(grunt) {
                 'config/*.*',
                 'layout/*.*',
                 'locales/*.*',
-                'sections/*.*,
+                'sections/*.*',
                 'snippets/*.*',
                 'templates/*.*',
                 'templates/customers/*.*'
