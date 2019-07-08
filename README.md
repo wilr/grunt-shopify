@@ -50,6 +50,8 @@ As mentioned, for secure environments use environment variables instead of hard
 coding this information.
 
 ```js
+const grunt = require('grunt');
+
 grunt.loadNpmTasks('grunt-contrib-watch');
 grunt.loadNpmTasks('grunt-shopify');
 
@@ -69,6 +71,8 @@ Step 2. Add a section named `watch` to describe what files and directories you
 want to sync to shopify.
 
 ```js
+const grunt = require('grunt');
+
 grunt.loadNpmTasks('grunt-contrib-watch');
 grunt.loadNpmTasks('grunt-shopify');
 
@@ -94,6 +98,8 @@ before being uploaded to the shopify store, use watch to have the coffee
 tasks run on `.coffee` files and have shopify watch the resulting `.js` files.
 
 ```js
+const grunt = require('grunt');
+
 grunt.loadNpmTasks('grunt-contrib-watch');
 grunt.loadNpmTasks('grunt-shopify');
 
