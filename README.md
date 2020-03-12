@@ -1,9 +1,11 @@
 # grunt-shopify
 
-> Grunt plug-in for publishing Shopify theme assets
+> :warning: **Note that this was written prior to ThemeKit. Newer projects should use ThemeKit which is supported by Shopify https://github.com/Shopify/themekit**
 
 [![dependencies](https://img.shields.io/david/wilr/grunt-shopify.svg?style=flat-square)](https://david-dm.org/wilr/grunt-shopify)
 [![npm version](https://img.shields.io/npm/v/grunt-shopify.svg?style=flat-square)](https://npmjs.org/package/grunt-shopify)
+
+**Grunt plug-in for publishing Shopify theme assets**
 
 This plug-in handles publishing file changes, uploading new files and removing
 deleted files from your local filesystem to a Shopify account in real time.
